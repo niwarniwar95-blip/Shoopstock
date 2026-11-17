@@ -4329,8 +4329,8 @@ window.isPending=isPending;
 
 /* ===== Restaurant: kitchen screen + waiter screen ===== */
 addT({
-ku:{scrL:"ئەڤ ئامێرە بۆ چییە؟",scrAll:"کاشێر (هەمی تشت)",scrKitchen:"🍳 شاشا مەتبەخێ",scrWaiter:"🧑‍🍳 گارسۆن",scrNote:"ئەڤە ب تنێ ل سەر ڤی ئامێری دهێتە گوهۆڕین.",kTitle:"مەتبەخ",kNone:"چ داخواز نینن 👌",kAllDone:"✓ هەمی حازرن",kMin:"{n} خولەک",kNew:"نوی",kDone:"حازر بوون",kUndo:"زڤڕاندن",kExit:"دەرکەفتن (٢ چرکەیان ب گرە)",readyT:"🔔 خوارن حازرە",readyServed:"✓ هاتە برن",lnReady:"✓ حازرە",lnServed:"🍽️ هاتە برن",lnCooking:"🍳 ل مەتبەخێ",kPrint:"پرنتا مەتبەخێ ژی (ل گەل شاشێ)",wTables:"مێز",wHello:"گارسۆن: {n}"},
-en:{scrL:"What is this device for?",scrAll:"Cashier (everything)",scrKitchen:"🍳 Kitchen screen",scrWaiter:"🧑‍🍳 Waiter",scrNote:"This changes only this device.",kTitle:"Kitchen",kNone:"No orders 👌",kAllDone:"✓ All ready",kMin:"{n} min",kNew:"New",kDone:"Ready",kUndo:"Undo",kExit:"Exit (hold 2 seconds)",readyT:"🔔 Food is ready",readyServed:"✓ Served",lnReady:"✓ Ready",lnServed:"🍽️ Served",lnCooking:"🍳 In the kitchen",kPrint:"Also print kitchen tickets (with the screen)",wTables:"Tables",wHello:"Waiter: {n}"}});
+ku:{scrL:"ئەڤ ئامێرە بۆ چییە؟",scrAll:"کاشێر (هەمی تشت)",scrKitchen:"🍳 شاشا مەتبەخێ",scrWaiter:"🧑‍🍳 گارسۆن",scrNote:"ئەڤە ب تنێ ل سەر ڤی ئامێری دهێتە گوهۆڕین.",kTitle:"مەتبەخ",kNone:"چ داخواز نینن 👌",kAllDone:"✓ هەمی حازرن",kMin:"{n} خولەک",kNew:"نوی",kDone:"حازر بوون",kUndo:"زڤڕاندن",kExit:"دەرکەفتن",kExitQ:"دەرکەفتن ژ ڤێ شاشێ و زڤڕین بۆ ئاپێ؟",kExitYes:"بەلێ، دەرکەڤە",readyT:"🔔 خوارن حازرە",readyServed:"✓ هاتە برن",lnReady:"✓ حازرە",lnServed:"🍽️ هاتە برن",lnCooking:"🍳 ل مەتبەخێ",kPrint:"پرنتا مەتبەخێ ژی (ل گەل شاشێ)",wTables:"مێز",wHello:"گارسۆن: {n}"},
+en:{scrL:"What is this device for?",scrAll:"Cashier (everything)",scrKitchen:"🍳 Kitchen screen",scrWaiter:"🧑‍🍳 Waiter",scrNote:"This changes only this device.",kTitle:"Kitchen",kNone:"No orders 👌",kAllDone:"✓ All ready",kMin:"{n} min",kNew:"New",kDone:"Ready",kUndo:"Undo",kExit:"Exit",kExitQ:"Leave this screen and go back to the app?",kExitYes:"Yes, leave",readyT:"🔔 Food is ready",readyServed:"✓ Served",lnReady:"✓ Ready",lnServed:"🍽️ Served",lnCooking:"🍳 In the kitchen",kPrint:"Also print kitchen tickets (with the screen)",wTables:"Tables",wHello:"Waiter: {n}"}});
 const scrKey=()=>'zh.screen.'+ACCT;
 const screenRole=()=>{if(!isR())return '';try{return localStorage.getItem(scrKey())||''}catch(e){return ''}};
 function setScreenRole(v){try{v?localStorage.setItem(scrKey(),v):localStorage.removeItem(scrKey())}catch(e){}applyScreen()}
@@ -4346,6 +4346,10 @@ async function keepAwake(on){try{if(on&&!wake&&navigator.wakeLock){wake=await na
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&screenRole()==='kitchen')keepAwake(true)});
 setInterval(()=>{if(screenRole()==='kitchen')lastAct=Date.now()},10000);
 
+/* leaving the kitchen / waiter screen: one click, then confirm */
+function askExit(){const o=sheet('exOverlay');o.style.zIndex='95';const b=o.querySelector('.sheet');
+  b.innerHTML=`<h2>${t('kExitQ')}</h2><div class="sheet-actions"><button type="button" class="btn ghost" id="exNo">${t('cancel')}</button><button type="button" class="btn blue" id="exYes">${t('kExitYes')}</button></div>`;
+  o.hidden=false;$('#exNo').onclick=()=>o.hidden=true;$('#exYes').onclick=()=>{o.hidden=true;setScreenRole('');toast(t('scrAll'),'ok')}}
 /* ---------- kitchen screen ---------- */
 const sentAt=(l,tk)=>(+l.sent>1?+l.sent:tk.t);
 function kitchenTickets(){return tickets.map(tk=>({tk,ls:tk.lines.filter(l=>l.sent&&!l.ready)})).filter(x=>x.ls.length).sort((a,b)=>Math.min(...a.ls.map(l=>sentAt(l,a.tk)))-Math.min(...b.ls.map(l=>sentAt(l,b.tk))))}
@@ -4353,10 +4357,7 @@ let kSeen=null,kLastDone=[];
 function ensureKds(){
   if($('#kds'))return;
   document.body.insertAdjacentHTML('beforeend',`<div id="kds" hidden><header class="kdsh"><b id="kdsTitle"></b><span id="kdsCount"></span><span class="kdsclock" id="kdsClock"></span><button type="button" id="kdsExit" aria-label="exit">⚙</button></header><div class="kdsgrid" id="kdsGrid"></div><div class="kdsdone" id="kdsDone"></div></div>`);
-  let hold=null;const ex=$('#kdsExit');
-  const start=()=>{hold=setTimeout(()=>{setScreenRole('');toast(t('scrAll'),'ok')},2000)};const stop=()=>{clearTimeout(hold)};
-  ex.addEventListener('pointerdown',start);['pointerup','pointerleave','pointercancel'].forEach(e=>ex.addEventListener(e,stop));
-  ex.title=t('kExit');
+  const ex=$('#kdsExit');ex.onclick=askExit;ex.title=t('kExit');
   $('#kdsGrid').addEventListener('click',e=>{let b;
     if(b=e.target.closest('[data-kl]')){const [tid,lid]=b.dataset.kl.split('|');const tk=tickets.find(x=>x.id===tid);const l=tk&&tk.lines.find(x=>x.id===lid);if(!l)return;l.ready=Date.now();kLastDone.unshift({tid,lid,n:lineName(l),q:l.q,no:tk.no});kLastDone=kLastDone.slice(0,8);saveTickets();renderKds();haptic(1);return}
     if(b=e.target.closest('[data-kall]')){const tk=tickets.find(x=>x.id===b.dataset.kall);if(!tk)return;const now=Date.now();tk.lines.forEach(l=>{if(l.sent&&!l.ready){l.ready=now;kLastDone.unshift({tid:tk.id,lid:l.id,n:lineName(l),q:l.q,no:tk.no})}});kLastDone=kLastDone.slice(0,8);saveTickets();renderKds();haptic(1)}});
@@ -4399,7 +4400,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-served]');
 function ensureWaiterBar(){
   if($('#wBar'))return;
   $('#rPos').insertAdjacentHTML('afterbegin',`<div id="wBar" class="wbar"><span id="wWho"></span><button type="button" id="wExit" aria-label="exit">⚙</button></div>`);
-  let hold=null;const ex=$('#wExit');ex.addEventListener('pointerdown',()=>{hold=setTimeout(()=>{setScreenRole('');toast(t('scrAll'),'ok')},2000)});['pointerup','pointerleave','pointercancel'].forEach(e=>ex.addEventListener(e,()=>clearTimeout(hold)));
+  $('#wExit').onclick=askExit;
 }
 function applyScreen(){
   const r=screenRole();
@@ -4433,7 +4434,7 @@ function screenSettings(){
 }
 {const _rs=renderSettings;renderSettings=function(){const r=_rs.apply(this,arguments);try{screenSettings()}catch(e){console.warn(e)}return r}}
 setTimeout(()=>{try{applyScreen()}catch(e){}},0);
-Object.assign(window,{renderKds,renderReady});
+Object.assign(window,{renderKds,renderReady,askExit});
 
 })();
 </script>
