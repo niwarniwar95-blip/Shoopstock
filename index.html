@@ -4249,6 +4249,19 @@ setTimeout(()=>{try{applyMode();renderAll()}catch(e){}},0);
 $$('nav button').forEach(b=>b.addEventListener('click',()=>{try{renderBar(curT())}catch(e){}}));
 Object.assign(window,{setImg,openLabels,openModel,openSeason,openWaits,saveWaits,saveVouchers,saveTickets,saveImages,renderPos,applyMode,openTables});
 
+/* ===== A scan only goes into the open order. It counts as sold when the order is finished
+   (paid, on credit, or after the order closes by itself when idle). ===== */
+const orderLastT=o=>{let m=0;for(const s of sales)if(s.o===o&&s.t>m)m=s.t;return m};
+const isPending=s=>!!s.pend&&Date.now()-orderLastT(s.o)<ORDER_IDLE;
+{const _sp=sellProduct;sellProduct=function(){const n0=sales.length;const r=_sp.apply(this,arguments);if(sales.length>n0){sales.slice(n0).forEach(s=>{s.pend=1});saveSales();renderAll()}return r}}
+function clearPend(o){let ch=false;sales.forEach(s=>{if(s.o===o&&s.pend){delete s.pend;ch=true}});if(ch)saveSales()}
+{const _co=completeOrder;completeOrder=function(cur){clearPend(cur);return _co.apply(this,arguments)}}
+{const _ch=chargeOrder;chargeOrder=function(){if(crOrder!=null)clearPend(crOrder);return _ch.apply(this,arguments)}}
+{const _ra=renderAcc;renderAcc=function(){const all=sales;if(!all.some(isPending))return _ra.apply(this,arguments);sales=all.filter(s=>!isPending(s));try{return _ra.apply(this,arguments)}finally{sales=all}}}
+/* when the open order closes by itself after being idle, refresh the numbers */
+setInterval(()=>{if(sales.some(s=>s.pend&&!isPending(s))){try{renderAcc()}catch(e){}}},60000);
+window.isPending=isPending;
+
 })();
 </script>
 </body>
