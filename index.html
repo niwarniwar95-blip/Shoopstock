@@ -815,6 +815,54 @@ span.cmimg{display:flex}
 #aType{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit}
 .cmhint{margin:6px 0 0;font-size:13px}
 
+/* kitchen screen */
+#kds{position:fixed;inset:0;z-index:90;background:#0e1014;color:#f2f4f7;display:flex;flex-direction:column;overflow:hidden}
+#kds[hidden]{display:none}
+.kdsh{display:flex;align-items:center;gap:14px;padding:12px 20px;background:#161a21;border-bottom:1px solid #262c36}
+.kdsh b{font-size:20px;font-weight:600;flex:1}
+#kdsCount{min-width:34px;height:34px;border-radius:17px;background:#ff7a3d;color:#fff;display:grid;place-items:center;font-weight:700}
+#kdsCount:empty{display:none}
+.kdsclock{font-size:22px;font-variant-numeric:tabular-nums;color:#aeb6c4}
+#kdsExit{width:40px;height:40px;border-radius:12px;border:1px solid #2c3340;background:#1d222b;color:#aeb6c4;font-size:18px;cursor:pointer}
+.kdsgrid{flex:1;overflow:auto;padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;align-content:start}
+.kcard{background:#171b22;border:1px solid #29303b;border-top:6px solid #33c48d;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;animation:kin .35s ease both}
+.kcard.warn{border-top-color:#f5b83d}.kcard.late{border-top-color:#ff5a5a}
+.kcard.fresh{animation:kin .35s ease both,kflash 1.2s ease 2}
+@keyframes kin{from{opacity:0;transform:translateY(10px)}}
+@keyframes kflash{50%{box-shadow:0 0 0 4px #ff7a3d}}
+.kch{display:flex;align-items:baseline;gap:10px}
+.kch b{font-size:26px}.kch span{flex:1;font-size:16px;color:#d4dae3}.kch i{font-style:normal;font-size:14px;color:#aeb6c4}
+.kcard.warn .kch i{color:#f5b83d}.kcard.late .kch i{color:#ff7a7a;font-weight:700}
+.kby{font-size:12.5px;color:#7e8898;margin-top:-6px}
+.kline{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;text-align:start;padding:10px 12px;border-radius:12px;border:1px solid #2a313c;background:#1e232c;color:#f2f4f7;font:inherit;cursor:pointer}
+.kline:hover{border-color:#33c48d}
+.kq{font-size:22px;font-weight:700;color:#ffb27a}
+.kn{font-size:18px;font-weight:600;line-height:1.35}.kn em{font-style:normal;color:#aeb6c4;font-weight:500}
+.kn small{display:block;font-size:14px;font-weight:500;color:#c5cbd6;margin-top:2px}
+.kn .knote{color:#ffd166}
+.kok{width:34px;height:34px;border-radius:50%;border:2px solid #3a4250;display:grid;place-items:center;color:#3a4250;font-size:18px}
+.kline:hover .kok{border-color:#33c48d;color:#33c48d}
+.kall{margin-top:4px;padding:12px;border:0;border-radius:12px;background:#33c48d;color:#06281b;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+.kempty{grid-column:1/-1;text-align:center;font-size:24px;color:#7e8898;margin-top:18vh}
+.kdsdone{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 18px;background:#12151b;border-top:1px solid #262c36;font-size:13px;color:#7e8898}
+.kdsdone:empty{display:none}
+.kdsdone button{border:1px solid #2c3340;background:#1a1f27;color:#aeb6c4;border-radius:20px;padding:5px 12px;font:inherit;cursor:pointer}
+body.scr-kitchen{overflow:hidden}
+/* ready banner */
+.rready{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.rready[hidden]{display:none}
+.rrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,#33c48d 18%,var(--surface));border:1px solid color-mix(in srgb,#33c48d 50%,transparent);animation:kin .3s ease both}
+.rrow span{flex:1;font-size:14.5px}
+.rline.ready{background:color-mix(in srgb,#33c48d 12%,transparent);border-radius:10px}
+/* waiter screen */
+.wbar{display:none}
+body.scr-waiter .wbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-weight:600}
+body.scr-waiter .wbar button{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+body.scr-waiter nav,body.scr-waiter #rPayB,body.scr-waiter #rCancelB{display:none!important}
+body.scr-waiter main{padding-bottom:24px}
+
+body.rticket-in .rbar{display:none!important}
+
 </style>
 </head>
 <body>
@@ -1461,7 +1509,7 @@ function docSpecs(){return {
   images:{lk:'shop.images',f:'items',get:()=>images,set:v=>{images=v}},
   waits:{lk:'shop.waits',f:'items',get:()=>waits,set:v=>{waits=v}},
   vouchers:{lk:'shop.vouchers',f:'items',get:()=>vouchers,set:v=>{vouchers=v}},
-  tickets:{lk:'shop.tickets',f:'items',get:()=>tickets,set:v=>{tickets=v}}
+  tickets:{lk:'shop.tickets',f:'items',get:()=>tickets,set:v=>{tickets=v},lines:1}
 }}
 const docNames=()=>[...Object.keys(docSpecs()),'settings'];
 const rkey=name=>DP(base+'/'+name).replace(base+'/','');
@@ -1470,6 +1518,7 @@ const blSet=(k,v)=>{try{localStorage.setItem('shop.base.'+k,JSON.stringify(v))}c
 function sigOf(spec,x){
   if(spec.delta){const r={...x};delete r[spec.delta];return [hs(stable(r)),+x[spec.delta]||0]}
   if(spec.sub){const r={...x};delete r[spec.sub];return [hs(stable(r)),(x[spec.sub]||[]).map(entKey).join(';')]}
+  if(spec.lines){const r={...x};delete r.lines;return [hs(stable(r)),(x.lines||[]).map(l=>l.id+':'+hs(stable(l))).join(';')]}
   return [hs(stable(x))];
 }
 function snapOf(spec,arr){const m={};arr.forEach(x=>{m[idOf(x)]=sigOf(spec,x)});return m}
@@ -1483,6 +1532,7 @@ function merge3(spec,B,L,R){
     const id=idOf(l),r=Rm.get(id),b=B[id];
     if(!r){
       if(!b){out.push(l);return}                                   /* new on this device */
+      if(spec.lines){const bl=new Set(String(b[1]||'').split(';').map(z=>z.split(':')[0]));const fresh=(l.lines||[]).filter(z=>!bl.has(z.id));changed=true;if(fresh.length){l.lines=fresh;out.push(l)}return} /* paid or cancelled elsewhere: only lines added here survive */
       const ls=sigOf(spec,l);
       if(ls[0]!==b[0]||ls[1]!==b[1])out.push(l);else changed=true;  /* deleted elsewhere, unless edited here */
       return;
@@ -1491,6 +1541,19 @@ function merge3(spec,B,L,R){
     const ls=sigOf(spec,l),rs=sigOf(spec,r);
     const x=(rs[0]!==b[0]&&ls[0]===b[0])?{...r}:{...l};
     if(spec.delta){x[spec.delta]=Math.round(((+r[spec.delta]||0)+((+l[spec.delta]||0)-(+b[1]||0)))*1000)/1000}
+    if(spec.lines){
+      const bm=new Map(String(b[1]||'').split(';').filter(Boolean).map(z=>{const i=z.lastIndexOf(':');return [z.slice(0,i),z.slice(i+1)]}));
+      const lm=new Map((l.lines||[]).map(z=>[z.id,z])),rm=new Map((r.lines||[]).map(z=>[z.id,z]));const lines=[];
+      (l.lines||[]).forEach(z=>{const rz=rm.get(z.id),bh=bm.get(z.id);
+        if(!rz){if(bh===undefined)lines.push(z);return}
+        if(bh===undefined){lines.push(z);return}
+        const lh=hs(stable(z)),rh=hs(stable(rz));
+        if(rh!==bh&&lh===bh){lines.push({...rz});return}
+        if(rh!==bh&&lh!==bh){const m={...z};['sent','ready','served'].forEach(k=>{const v=Math.max(+z[k]||0,+rz[k]||0);if(v)m[k]=v;else delete m[k]});lines.push(m);return}
+        lines.push(z)});
+      (r.lines||[]).forEach(z=>{if(!lm.has(z.id)&&!bm.has(z.id))lines.push(z)});
+      x.lines=lines;
+    }
     if(spec.sub){
       const bk=new Set(String(b[1]||'').split(';')),le=l[spec.sub]||[],re=r[spec.sub]||[];
       const lk=new Set(le.map(entKey)),rk=new Set(re.map(entKey));
@@ -4004,7 +4067,9 @@ function renderMenuGrid(){
     return `<button type="button" class="rtile${off?' off':''}" data-ri="${p.id}" ${off?'disabled':''}>${img?`<img src="${img}" alt="">`:`<span class="ph">🍽️</span>`}<b>${esc(p.name)}</b><bdi>${money(p.sizes&&p.sizes.length?Math.min(...p.sizes.map(s=>+s.p||0)):p.price)}</bdi>${off?`<small>${t('rOffB')}</small>`:''}</button>`}).join(''):`<div class="empty">${items.length?t('noItems'):t('rNoMenu')}</div>`;
 }
 function totsHtml(tk){const tt=totals(tk);return `${tt.svc||tt.fee?`<div><span>${t('rSub')}</span><bdi>${money(tt.sub)}</bdi></div>`:''}${tt.svc?`<div><span>${t('rSvc')} ${svcPct()}%</span><bdi>${money(tt.svc)}</bdi></div>`:''}${tt.fee?`<div><span>${t('rFee')}</span><bdi>${money(tt.fee)}</bdi></div>`:''}<div class="big"><span>${t('rTot')}</span><bdi>${money(tt.tot)}</bdi></div>`}
-function renderBar(tk){let bar=$('#rBar');if(!bar){document.body.insertAdjacentHTML('beforeend','<button type="button" id="rBar" class="rbar" hidden></button>');bar=$('#rBar');bar.onclick=()=>$('#rTicket').scrollIntoView({behavior:'smooth',block:'start'})}
+function renderBar(tk){let bar=$('#rBar');if(!bar){document.body.insertAdjacentHTML('beforeend','<button type="button" id="rBar" class="rbar" hidden></button>');bar=$('#rBar');bar.onclick=()=>$('#rTicket').scrollIntoView({behavior:'smooth',block:'start'});
+    /* hide the bar while the order itself is on screen, so it never covers its buttons */
+    try{new IntersectionObserver(es=>{es.forEach(en=>{document.body.classList.toggle('rticket-in',en.isIntersecting)})},{threshold:0.05}).observe($('#rTicket'))}catch(e){}}
   const n=tk?tk.lines.reduce((a,l)=>a+l.q,0):0;bar.hidden=!(isR()&&tk&&n>0&&tab==='sell');if(!bar.hidden)bar.innerHTML=`🧾 #${tk.no} · ${fmtQ(n)} · <bdi>${money(totals(tk).tot)}</bdi> ⬇`}
 function renderTicket(){
   const tk=curT(),box=$('#rTicket');renderBar(tk);
@@ -4109,8 +4174,8 @@ function sendKitchen(){
   const html=`<div class="pr" style="width:${pg.w};font-size:${pg.fs}"><div class="c" style="font-size:1.6em;font-weight:800">${t('rKitchen')} · #${tk.no}</div>
    <div class="c" style="font-size:1.3em;font-weight:700">${typeName(tk.ty)}${tk.ty==='in'&&tk.tb?' · '+esc(tblName(tk.tb)):''}</div><div class="c">${hhmm(Date.now())} · ${esc(actor2())}</div><div class="hr"></div>
    ${fresh.map(l=>`<div style="font-size:1.35em;font-weight:700;margin:4px 0">${fmtQ(l.q)} × ${esc(l.n)}${l.sz?' ('+esc(l.sz)+')':''}</div>${l.x?`<div style="font-size:1.1em">+ ${esc(l.x)}</div>`:''}${l.note?`<div style="font-size:1.15em">📝 ${esc(l.note)}</div>`:''}`).join('<div class="hr"></div>')}</div>`;
-  fresh.forEach(l=>{l.sent=1});saveTickets();renderTicket();toast(t('rSent'),'ok');
-  printHtml(html,pg.css);
+  const now=Date.now();fresh.forEach(l=>{l.sent=now});saveTickets();renderTicket();toast(t('rSent'),'ok');
+  if(settings.kPrint!==0)printHtml(html,pg.css);
 }
 function printBill(){
   const tk=curT();if(!tk||!tk.lines.length)return;const tt=totals(tk),pg=receiptPage();
@@ -4261,6 +4326,114 @@ function clearPend(o){let ch=false;sales.forEach(s=>{if(s.o===o&&s.pend){delete 
 /* when the open order closes by itself after being idle, refresh the numbers */
 setInterval(()=>{if(sales.some(s=>s.pend&&!isPending(s))){try{renderAcc()}catch(e){}}},60000);
 window.isPending=isPending;
+
+/* ===== Restaurant: kitchen screen + waiter screen ===== */
+addT({
+ku:{scrL:"ئەڤ ئامێرە بۆ چییە؟",scrAll:"کاشێر (هەمی تشت)",scrKitchen:"🍳 شاشا مەتبەخێ",scrWaiter:"🧑‍🍳 گارسۆن",scrNote:"ئەڤە ب تنێ ل سەر ڤی ئامێری دهێتە گوهۆڕین.",kTitle:"مەتبەخ",kNone:"چ داخواز نینن 👌",kAllDone:"✓ هەمی حازرن",kMin:"{n} خولەک",kNew:"نوی",kDone:"حازر بوون",kUndo:"زڤڕاندن",kExit:"دەرکەفتن (٢ چرکەیان ب گرە)",readyT:"🔔 خوارن حازرە",readyServed:"✓ هاتە برن",lnReady:"✓ حازرە",lnServed:"🍽️ هاتە برن",lnCooking:"🍳 ل مەتبەخێ",kPrint:"پرنتا مەتبەخێ ژی (ل گەل شاشێ)",wTables:"مێز",wHello:"گارسۆن: {n}"},
+en:{scrL:"What is this device for?",scrAll:"Cashier (everything)",scrKitchen:"🍳 Kitchen screen",scrWaiter:"🧑‍🍳 Waiter",scrNote:"This changes only this device.",kTitle:"Kitchen",kNone:"No orders 👌",kAllDone:"✓ All ready",kMin:"{n} min",kNew:"New",kDone:"Ready",kUndo:"Undo",kExit:"Exit (hold 2 seconds)",readyT:"🔔 Food is ready",readyServed:"✓ Served",lnReady:"✓ Ready",lnServed:"🍽️ Served",lnCooking:"🍳 In the kitchen",kPrint:"Also print kitchen tickets (with the screen)",wTables:"Tables",wHello:"Waiter: {n}"}});
+const scrKey=()=>'zh.screen.'+ACCT;
+const screenRole=()=>{if(!isR())return '';try{return localStorage.getItem(scrKey())||''}catch(e){return ''}};
+function setScreenRole(v){try{v?localStorage.setItem(scrKey(),v):localStorage.removeItem(scrKey())}catch(e){}applyScreen()}
+window.setScreenRole=setScreenRole;
+/* ---------- sound ---------- */
+let actx=null;
+function chime(kind){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const notes=kind==='ready'?[880,1175,1568]:[660,880];notes.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.0001,actx.currentTime+i*0.16);g.gain.exponentialRampToValueAtTime(0.25,actx.currentTime+i*0.16+0.02);g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+i*0.16+0.28);o.connect(g);g.connect(actx.destination);o.start(actx.currentTime+i*0.16);o.stop(actx.currentTime+i*0.16+0.3)})}catch(e){}}
+/* ---------- faster updates while a restaurant screen is open ---------- */
+let fastT=null;
+function fastPull(){clearInterval(fastT);fastT=null;if(!isR())return;const r=screenRole();const ms=r?4000:(tab==='sell'?8000:0);if(ms)fastT=setInterval(()=>{if(document.visibilityState==='visible')try{pullChanges()}catch(e){}},ms)}
+let wake=null;
+async function keepAwake(on){try{if(on&&!wake&&navigator.wakeLock){wake=await navigator.wakeLock.request('screen');wake.addEventListener('release',()=>{wake=null})}else if(!on&&wake){wake.release();wake=null}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&screenRole()==='kitchen')keepAwake(true)});
+setInterval(()=>{if(screenRole()==='kitchen')lastAct=Date.now()},10000);
+
+/* ---------- kitchen screen ---------- */
+const sentAt=(l,tk)=>(+l.sent>1?+l.sent:tk.t);
+function kitchenTickets(){return tickets.map(tk=>({tk,ls:tk.lines.filter(l=>l.sent&&!l.ready)})).filter(x=>x.ls.length).sort((a,b)=>Math.min(...a.ls.map(l=>sentAt(l,a.tk)))-Math.min(...b.ls.map(l=>sentAt(l,b.tk))))}
+let kSeen=null,kLastDone=[];
+function ensureKds(){
+  if($('#kds'))return;
+  document.body.insertAdjacentHTML('beforeend',`<div id="kds" hidden><header class="kdsh"><b id="kdsTitle"></b><span id="kdsCount"></span><span class="kdsclock" id="kdsClock"></span><button type="button" id="kdsExit" aria-label="exit">⚙</button></header><div class="kdsgrid" id="kdsGrid"></div><div class="kdsdone" id="kdsDone"></div></div>`);
+  let hold=null;const ex=$('#kdsExit');
+  const start=()=>{hold=setTimeout(()=>{setScreenRole('');toast(t('scrAll'),'ok')},2000)};const stop=()=>{clearTimeout(hold)};
+  ex.addEventListener('pointerdown',start);['pointerup','pointerleave','pointercancel'].forEach(e=>ex.addEventListener(e,stop));
+  ex.title=t('kExit');
+  $('#kdsGrid').addEventListener('click',e=>{let b;
+    if(b=e.target.closest('[data-kl]')){const [tid,lid]=b.dataset.kl.split('|');const tk=tickets.find(x=>x.id===tid);const l=tk&&tk.lines.find(x=>x.id===lid);if(!l)return;l.ready=Date.now();kLastDone.unshift({tid,lid,n:lineName(l),q:l.q,no:tk.no});kLastDone=kLastDone.slice(0,8);saveTickets();renderKds();haptic(1);return}
+    if(b=e.target.closest('[data-kall]')){const tk=tickets.find(x=>x.id===b.dataset.kall);if(!tk)return;const now=Date.now();tk.lines.forEach(l=>{if(l.sent&&!l.ready){l.ready=now;kLastDone.unshift({tid:tk.id,lid:l.id,n:lineName(l),q:l.q,no:tk.no})}});kLastDone=kLastDone.slice(0,8);saveTickets();renderKds();haptic(1)}});
+  $('#kdsDone').addEventListener('click',e=>{const b=e.target.closest('[data-kundo]');if(!b)return;const [tid,lid]=b.dataset.kundo.split('|');const tk=tickets.find(x=>x.id===tid);const l=tk&&tk.lines.find(x=>x.id===lid);if(l){delete l.ready;delete l.served;saveTickets()}kLastDone=kLastDone.filter(x=>!(x.tid===tid&&x.lid===lid));renderKds()});
+}
+function renderKds(){
+  ensureKds();const on=screenRole()==='kitchen';$('#kds').hidden=!on;if(!on)return;
+  const list=kitchenTickets(),now=Date.now();
+  const ids=new Set(list.flatMap(x=>x.ls.map(l=>l.id)));
+  if(kSeen&&[...ids].some(id=>!kSeen.has(id)))chime('new');
+  const fresh=kSeen?new Set([...ids].filter(id=>!kSeen.has(id))):new Set();kSeen=ids;
+  $('#kdsTitle').textContent='🍳 '+t('kTitle')+(settings.shopName?' · '+settings.shopName:'');
+  $('#kdsCount').textContent=list.length?String(list.length):'';
+  $('#kdsClock').textContent=hhmm(now);
+  $('#kdsGrid').innerHTML=list.length?list.map(({tk,ls})=>{const mins=Math.floor((now-Math.min(...ls.map(l=>sentAt(l,tk))))/60000);const lvl=mins>=20?'late':mins>=10?'warn':'ok';
+    return `<div class="kcard ${lvl}${ls.some(l=>fresh.has(l.id))?' fresh':''}"><div class="kch"><b>#${tk.no}</b><span>${typeName(tk.ty)}${tk.ty==='in'&&tk.tb?' · '+esc(tblName(tk.tb)):''}${tk.cn?' · '+esc(tk.cn):''}</span><i>⏱ ${t('kMin').replace('{n}',mins)}</i></div>
+     <div class="kby">${esc(tk.by||'')}</div>
+     ${ls.map(l=>`<button type="button" class="kline" data-kl="${tk.id}|${l.id}"><span class="kq">${fmtQ(l.q)}×</span><span class="kn">${esc(l.n)}${l.sz?` <em>(${esc(l.sz)})</em>`:''}${l.x?`<small>+ ${esc(l.x)}</small>`:''}${l.note?`<small class="knote">📝 ${esc(l.note)}</small>`:''}</span><span class="kok">✓</span></button>`).join('')}
+     <button type="button" class="kall" data-kall="${tk.id}">${t('kAllDone')}</button></div>`}).join(''):`<div class="kempty">${t('kNone')}</div>`;
+  $('#kdsDone').innerHTML=kLastDone.length?`<span>${t('kDone')}:</span>`+kLastDone.map(d=>`<button type="button" data-kundo="${d.tid}|${d.lid}">#${d.no} ${fmtQ(d.q)}× ${esc(d.n)} ↩</button>`).join(''):'';
+}
+setInterval(()=>{if(screenRole()==='kitchen')renderKds()},15000);
+
+/* ---------- ready food: banner for waiters / cashier ---------- */
+let rSeen=null;
+function readyGroups(){return tickets.map(tk=>({tk,ls:tk.lines.filter(l=>l.ready&&!l.served)})).filter(x=>x.ls.length)}
+function renderReady(){
+  ensurePos();let box=$('#rReady');
+  if(!box){$('#rPos .rmenu').insertAdjacentHTML('afterbegin','<div id="rReady" class="rready"></div>');box=$('#rReady')}
+  const g=isR()?readyGroups():[];
+  const ids=new Set(g.flatMap(x=>x.ls.map(l=>l.id)));
+  if(rSeen&&screenRole()!=='kitchen'&&[...ids].some(id=>!rSeen.has(id))){chime('ready');haptic(1)}
+  rSeen=ids;
+  box.hidden=!g.length;
+  box.innerHTML=g.map(({tk,ls})=>`<div class="rrow"><span>🔔 <b>${tk.ty==='in'&&tk.tb?esc(tblName(tk.tb)):typeName(tk.ty)} · #${tk.no}</b> — ${ls.map(l=>fmtQ(l.q)+'× '+esc(lineName(l))).join('، ')}</span><button type="button" class="btn blue sm" data-served="${tk.id}">${t('readyServed')}</button></div>`).join('');
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-served]');if(!b)return;const tk=tickets.find(x=>x.id===b.dataset.served);if(!tk)return;const now=Date.now();tk.lines.forEach(l=>{if(l.ready&&!l.served)l.served=now});saveTickets();renderReady();renderTicket()});
+
+/* ---------- waiter screen ---------- */
+function ensureWaiterBar(){
+  if($('#wBar'))return;
+  $('#rPos').insertAdjacentHTML('afterbegin',`<div id="wBar" class="wbar"><span id="wWho"></span><button type="button" id="wExit" aria-label="exit">⚙</button></div>`);
+  let hold=null;const ex=$('#wExit');ex.addEventListener('pointerdown',()=>{hold=setTimeout(()=>{setScreenRole('');toast(t('scrAll'),'ok')},2000)});['pointerup','pointerleave','pointercancel'].forEach(e=>ex.addEventListener(e,()=>clearTimeout(hold)));
+}
+function applyScreen(){
+  const r=screenRole();
+  document.body.classList.toggle('scr-kitchen',r==='kitchen');document.body.classList.toggle('scr-waiter',r==='waiter');
+  ensurePos();ensureWaiterBar();
+  $('#wWho').textContent=t('wHello').replace('{n}',actor2());$('#wExit').title=t('kExit');
+  if(r==='waiter'&&tab!=='sell'){try{$('nav button[data-tab=sell]').click()}catch(e){}}
+  if(r==='waiter'&&rType!=='in'){rType='in'}
+  renderKds();keepAwake(r==='kitchen');fastPull();
+  if(isR())renderPos();
+}
+window.applyScreen=applyScreen;
+/* ---------- hook into the restaurant screen ---------- */
+{const _rp=renderPos;renderPos=function(){const r=_rp.apply(this,arguments);try{if(isR()){renderReady();if(screenRole()==='kitchen')renderKds()}}catch(e){console.warn(e)}return r}}
+{const _ar=afterRemote;afterRemote=function(){const r=_ar.apply(this,arguments);try{if(screenRole()==='kitchen')renderKds();else if(isR())renderReady()}catch(e){}return r}}
+{const _am=applyMode;applyMode=function(){const r=_am.apply(this,arguments);try{applyScreen()}catch(e){}return r}}
+$$('nav button').forEach(b=>b.addEventListener('click',()=>setTimeout(fastPull,0)));
+/* line status in the ticket */
+{const _rt=renderTicket;renderTicket=function(){const r=_rt.apply(this,arguments);const tk=curT();if(!tk)return r;
+  $$('#rTicket .rline').forEach((row,i)=>{const l=tk.lines[i];if(!l)return;const sm=row.querySelector('.rln small:last-child');const st=l.served?t('lnServed'):l.ready?t('lnReady'):l.sent?t('lnCooking'):'';
+    if(l.sent&&sm&&/✓/.test(sm.textContent))sm.textContent=st;row.classList.toggle('ready',!!l.ready&&!l.served)});
+  return r}}
+/* settings: device role + kitchen printing */
+function screenSettings(){
+  let p=$('#scrPanel');
+  if(!p){$('#typePanel').insertAdjacentHTML('afterend',`<div class="panel" id="scrPanel" style="margin-top:14px"><div class="switchrow"><span id="scrL"></span><select id="scrSel" class="cc" aria-label="screen"><option value="" id="scrO0"></option><option value="kitchen" id="scrO1"></option><option value="waiter" id="scrO2"></option></select></div><label class="checkrow" style="margin-top:8px"><input type="checkbox" id="kPrintCb"><span id="kPrintL"></span></label><p class="muted" id="scrNote" style="margin:6px 0 0"></p></div>`);
+    p=$('#scrPanel');$('#scrSel').onchange=e=>{setScreenRole(e.target.value)};$('#kPrintCb').onchange=e=>{settings.kPrint=e.target.checked?1:0;saveSettings()}}
+  p.hidden=!isR();if(!isR())return;
+  $('#scrL').textContent=t('scrL');$('#scrO0').textContent=t('scrAll');$('#scrO1').textContent=t('scrKitchen');$('#scrO2').textContent=t('scrWaiter');$('#scrNote').textContent=t('scrNote');$('#kPrintL').textContent=t('kPrint');
+  $('#scrSel').value=screenRole();$('#kPrintCb').checked=settings.kPrint!==0;
+}
+{const _rs=renderSettings;renderSettings=function(){const r=_rs.apply(this,arguments);try{screenSettings()}catch(e){console.warn(e)}return r}}
+setTimeout(()=>{try{applyScreen()}catch(e){}},0);
+Object.assign(window,{renderKds,renderReady});
 
 })();
 </script>
