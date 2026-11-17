@@ -863,6 +863,21 @@ body.scr-waiter main{padding-bottom:24px}
 
 body.rticket-in .rbar{display:none!important}
 
+/* full-width headings and panels in the stock grid */
+#stockList>.rset,#stockList>.rcath,#stockList>.cmtools,#stockList>h3,#stockList>.empty{grid-column:1/-1}
+.rcath{display:flex;align-items:center;gap:10px;font-size:16px;color:var(--ink);margin:22px 4px 4px}
+.rcath::after{content:"";flex:1;height:1px;background:var(--line)}
+.rset{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 24px;align-items:center}
+.rset>b{grid-column:1/-1}
+.rmcard .cmth{width:64px;height:64px}
+.ravail{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:20px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1px solid}
+.ravail i{width:9px;height:9px;border-radius:50%;background:currentColor}
+.ravail.on{color:#1f9d63;border-color:color-mix(in srgb,#1f9d63 45%,transparent);background:color-mix(in srgb,#1f9d63 10%,transparent)}
+.ravail.off{color:#d64545;border-color:color-mix(in srgb,#d64545 45%,transparent);background:color-mix(in srgb,#d64545 10%,transparent)}
+
+.rolechip{background:color-mix(in srgb,var(--blue) 18%,transparent)!important;color:var(--ink)!important;font-weight:600}
+#exErr{color:var(--red,#d33);min-height:1.2em}
+
 </style>
 </head>
 <body>
@@ -4233,7 +4248,7 @@ function renderMenuStock(){
   $('#stockList').innerHTML=`<div class="panel rset"><b>${t('rSettings')}</b><div class="switchrow"><span>${t('rTablesSet')}</span><input type="number" id="rsTables" min="1" max="200" inputmode="numeric" value="${+settings.tables||12}"></div><div class="switchrow"><span>${t('rSvcSet')}</span><input type="number" id="rsSvc" min="0" max="50" step="0.5" inputmode="decimal" value="${svcPct()}"></div></div>`
    +(items.length?items.map(p=>{const head=(p.cat||'')!==lastCat?`<h3 class="rcath">${esc(p.cat||t('rMenu'))}</h3>`:'';lastCat=p.cat||'';const img=imgOf(p.id);
      return head+`<div class="card rmcard${p.off?' low':''}"><div class="cmrow">${img?`<img class="cmth" src="${img}" alt="">`:'<span class="cmth ph">🍽️</span>'}<div style="flex:1;min-width:0"><h3>${esc(p.name)}</h3><small class="muted">${p.sizes&&p.sizes.length?p.sizes.map(s=>esc(s.n)+' '+money(s.p)).join(' · '):money(p.price)}${p.track?' · '+t('rPieces')+': '+fmtQ(p.pieces):''}</small></div>
-      <button type="button" class="btn ${p.off?'danger':'ghost'} sm" data-roff="${p.id}">${p.off?t('rOffB'):t('rOnB')}</button></div>
+      <button type="button" class="ravail ${p.off?'off':'on'}" data-roff="${p.id}"><i></i>${p.off?t('rOffB'):t('rOnB')}</button></div>
       <div class="card-actions"><button class="btn ghost" data-rwaste="${p.id}">${t('rWaste')}</button><button class="btn ghost" data-redit="${p.id}">${t('editB')}</button></div></div>`}).join(''):`<div class="empty">${t('rNoMenu')}</div>`)
    +(others.length?`<h3 style="margin:18px 4px 8px">${t('otherItems')}</h3>`+others.map(p=>`<div class="card"><div class="card-top"><div><h3>${esc(p.name)}</h3></div><bdi style="font-weight:700">${money(p.price)}</bdi></div><span class="qty">${esc(stockText(p))}</span><div class="card-actions"><button class="btn ghost" data-edit="${p.id}">${t('edit')}</button></div></div>`).join(''):'');
   $('#rsTables').onchange=e=>{settings.tables=Math.max(1,Math.min(200,parseInt(e.target.value)||12));saveSettings()};
@@ -4332,7 +4347,7 @@ addT({
 ku:{scrL:"ئەڤ ئامێرە بۆ چییە؟",scrAll:"کاشێر (هەمی تشت)",scrKitchen:"🍳 شاشا مەتبەخێ",scrWaiter:"🧑‍🍳 گارسۆن",scrNote:"ئەڤە ب تنێ ل سەر ڤی ئامێری دهێتە گوهۆڕین.",kTitle:"مەتبەخ",kNone:"چ داخواز نینن 👌",kAllDone:"✓ هەمی حازرن",kMin:"{n} خولەک",kNew:"نوی",kDone:"حازر بوون",kUndo:"زڤڕاندن",kExit:"دەرکەفتن",kExitQ:"دەرکەفتن ژ ڤێ شاشێ و زڤڕین بۆ ئاپێ؟",kExitYes:"بەلێ، دەرکەڤە",readyT:"🔔 خوارن حازرە",readyServed:"✓ هاتە برن",lnReady:"✓ حازرە",lnServed:"🍽️ هاتە برن",lnCooking:"🍳 ل مەتبەخێ",kPrint:"پرنتا مەتبەخێ ژی (ل گەل شاشێ)",wTables:"مێز",wHello:"گارسۆن: {n}"},
 en:{scrL:"What is this device for?",scrAll:"Cashier (everything)",scrKitchen:"🍳 Kitchen screen",scrWaiter:"🧑‍🍳 Waiter",scrNote:"This changes only this device.",kTitle:"Kitchen",kNone:"No orders 👌",kAllDone:"✓ All ready",kMin:"{n} min",kNew:"New",kDone:"Ready",kUndo:"Undo",kExit:"Exit",kExitQ:"Leave this screen and go back to the app?",kExitYes:"Yes, leave",readyT:"🔔 Food is ready",readyServed:"✓ Served",lnReady:"✓ Ready",lnServed:"🍽️ Served",lnCooking:"🍳 In the kitchen",kPrint:"Also print kitchen tickets (with the screen)",wTables:"Tables",wHello:"Waiter: {n}"}});
 const scrKey=()=>'zh.screen.'+ACCT;
-const screenRole=()=>{if(!isR())return '';try{return localStorage.getItem(scrKey())||''}catch(e){return ''}};
+function screenRole(){if(!isR())return '';try{return localStorage.getItem(scrKey())||''}catch(e){return ''}}
 function setScreenRole(v){try{v?localStorage.setItem(scrKey(),v):localStorage.removeItem(scrKey())}catch(e){}applyScreen()}
 window.setScreenRole=setScreenRole;
 /* ---------- sound ---------- */
@@ -4435,6 +4450,70 @@ function screenSettings(){
 {const _rs=renderSettings;renderSettings=function(){const r=_rs.apply(this,arguments);try{screenSettings()}catch(e){console.warn(e)}return r}}
 setTimeout(()=>{try{applyScreen()}catch(e){}},0);
 Object.assign(window,{renderKds,renderReady,askExit});
+
+/* ===== Arabic + Sorani texts for clothes, restaurant, kitchen and waiter screens ===== */
+addT({
+ar:{tyC2:"أحذية وملابس",tyR2:"مطعم",close:"إغلاق",del2:"حذف",tapAgain2:"اضغط مرة أخرى",saveW:"حفظ",printW:"🖨️ طباعة",photo:"📷 صورة",photoRm:"حذف الصورة",noItems:"لا يوجد شيء",searchM:"ابحث بالاسم…",all:"الكل",
+cmNew:"+ موديل جديد",cmTitle:"موديل",cmName:"اسم الموديل",cmBrand:"الماركة",cmCat:"الفئة",cmKind:"النوع (حذاء، قميص، بنطلون…)",cmPrice:"سعر البيع (للقطعة)",cmCost:"الكلفة (للقطعة)",cmMin:"أقل سعر عند المساومة (اختياري)",cmSizes:"المقاسات",cmColors:"الألوان",cmAddColor:"لون جديد (أسود، أبيض…)",cmColorHint:"اكتب لونًا واضغط +. بعدها يظهر جدول المقاسات والباركودات في الأسفل.",cmAddSize:"مقاس آخر",cmGrid:"عدد كل مقاس ولون في المخزون",cmSeries:"+ سيري",cmSeriesAsk:"كم سيري؟ (السيري = قطعة من كل مقاس)",cmNeed:"الاسم والسعر ولون واحد مطلوبة",cmSaved:"تم حفظ الموديل",cmKeep:"المقاسات أو الألوان التي فيها مخزون لم تُحذف",cmDelAll:"حذف الموديل",cmDelBlocked:"اجعل المخزون 0 أولًا",psShoes:"أحذية 36–46",psKids:"أحذية أطفال 20–35",psCloth:"S – XXL",psPants:"بناطيل 28–40",psNone:"بدون مقاس",catMen:"رجالي",catWomen:"نسائي",catKids:"أطفال",catAll:"الكل",pcs:"{n} قطعة",labelsB:"🏷️ ملصقات",editB:"تعديل",pickT:"اختر المقاس واللون",noneLeft:"نفد",minNote:"أقل سعر: {m}",waitAsk:"{m} — {s} نفد. أضفه لقائمة الانتظار:",waitName:"اسم الزبون",waitPhone:"رقم الموبايل",waitAdd:"إضافة",waitList:"قائمة الانتظار",waitAvail:"✅ متوفر الآن",waitNo:"⏳ لم يصل بعد",waitMsg:"مرحبًا {n}، {m} ({s}) متوفر الآن في {shop}. أهلًا وسهلًا 🌸",waitDone:"تم",waitSaved:"أُضيف إلى قائمة الانتظار",alWait:"ينتظر: {m} ({s}) — متوفر الآن",opriceAsk:"السعر الجديد للقطعة (الأقل: {m})",tooLow:"هذا السعر أقل من أقل سعر ({m})",aPrice:"تم تخفيض السعر",retAsk:"{a} — إرجاع المال أم إعطاء قسيمة استبدال؟",retCash:"💵 مال",retVch:"🎫 قسيمة",vchTitle:"قسيمة استبدال",vchCode:"الرمز",vchUseL:"قسيمة استبدال:",vchPh:"رمز القسيمة",vchApply:"استخدم",vchBad:"القسيمة غير موجودة أو مستخدمة",vchApplied:"قسيمة: −{a}",vchNote:"احتفظ بهذه القسيمة واستخدم الرمز في شرائك القادم.",lbTitle:"طباعة الملصقات",lbRoll:"رول ملصقات 40×30 مم",lbA4:"ورق A4 (3×8)",lbHint:"عدد الملصقات لكل مقاس ولون",oldT:"بضاعة راكدة (60 يومًا بلا بيع)",oldNone:"لا توجد بضاعة راكدة 👍",oldDays:"{n} يوم",oldNever:"لم يُبع بعد",bestSz:"المقاسات الأكثر مبيعًا",bestCl:"الألوان الأكثر مبيعًا",seasT:"🏷️ تخفيض الموسم",seasPct:"نسبة التخفيض ٪",seasOn:"تطبيق",seasOff:"إرجاع الأسعار السابقة",seasDone:"تم تغيير {n} منتج",seasNow:"التخفيض على {n} منتج",otherItems:"منتجات أخرى",cmSearch:"ابحث عن موديل أو ماركة…",sizeW:"المقاس",colorW:"اللون",bcT:"📦 باركود علب الأحذية",bcHint:"إذا كان على العلبة باركود امسحه هنا (بالكاميرا أو الماسح). إذا تركته فارغًا يصنع التطبيق باركودًا.",bcDup:"هذا الباركود لمنتج آخر: {n}",linkT:"باركود غير معروف",linkHint:"لأي موديل ومقاس هو؟ اختر مرة واحدة وسيُعرف بعدها تلقائيًا.",linkDone:"تم ربط الباركود",
+rNew:"+ طبق جديد",rItem:"طبق",rName:"الاسم",rCat:"الفئة (سندويش، بيتزا، مشروبات…)",rPrice:"السعر",rCost:"الكلفة (اختياري)",rSizes:"الأحجام (اختياري)",rSizeN:"صغير، كبير…",rExtras:"الإضافات (اختياري)",rExtraN:"جبن إضافي…",rAddRow:"+ إضافة",rTrack:"احسب المخزون (للمشروبات والأشياء الجاهزة)",rPieces:"المخزون",rOffL:"نفد اليوم",rOffB:"نفد",rOnB:"متوفر",tIn:"داخلي",tOut:"سفري",tDel:"توصيل",rTablesB:"🍽️ الطاولات",rTableN:"طاولة {n}",rPickT:"اختر طاولة",rMoveT:"إلى أي طاولة؟",rFree:"فارغة",rBusy:"مشغولة",rBillSt:"طلب الحساب",rOpenB:"الطلبات المفتوحة",rNoOpen:"لا توجد طلبات مفتوحة",rNewB:"+ طلب جديد",rEmpty:"اختر طبقًا",rSend:"📨 أرسل للمطبخ",rSent:"أُرسل إلى المطبخ",rNothing:"لا شيء جديد للمطبخ",rBill:"🧾 طباعة الحساب",rPay:"💵 الحساب",rMove:"↔ نقل",rCancel:"✕ إلغاء الطلب",rNote:"ملاحظة (بدون بصل، حار…)",rQty:"العدد",rAdd:"إضافة",rCustName:"اسم الزبون",rCustPhone:"الموبايل",rCustAddr:"العنوان",rFee:"التوصيل",rSvc:"الخدمة",rSvcSet:"الخدمة ٪ (للداخلي فقط)",rTablesSet:"عدد الطاولات",rSub:"المجموع",rTot:"الإجمالي",rpCash:"💵 نقدًا",rpCard:"💳 بطاقة",rpCredit:"📒 دين",rpEqual:"تقسيم بالتساوي على",rpEach:"كل شخص: {a}",rpItems:"ادفع هذه الأشياء فقط الآن:",rpPay:"تم استلام المبلغ",rpMethod:"كيف يُدفع؟",rWaste:"🗑️ تالف",rWasteAsk:"كم قطعة تلفت؟",rWasteN:"تالف: {n} × {q}",rByType:"المبيعات حسب نوع الطلب",rByWaiter:"مبيعات كل موظف",rByHour:"أوقات الزحمة (عدد الطلبات)",rMoved:"نُقل إلى طاولة {n}",rMerged:"دُمج مع طلب طاولة {n}",aCancel:"أُلغي الطلب",aWaste:"تالف",aRmLine:"حُذف بعد الإرسال للمطبخ",rSettings:"إعدادات المطعم",rKitchen:"المطبخ",rPreBill:"الحساب (لم يُدفع بعد)",rMenu:"القائمة",rNoMenu:"لا توجد أطباق بعد. في المخزون اضغط «+ طبق جديد».",rTicketFor:"طلب #{n}",
+scrL:"لماذا هذا الجهاز؟",scrAll:"كاشير (كل شيء)",scrKitchen:"🍳 شاشة المطبخ",scrWaiter:"🧑‍🍳 نادل",scrNote:"هذا يتغير على هذا الجهاز فقط.",kTitle:"المطبخ",kNone:"لا توجد طلبات 👌",kAllDone:"✓ الكل جاهز",kMin:"{n} دقيقة",kNew:"جديد",kDone:"جاهز",kUndo:"تراجع",kExit:"خروج",kExitQ:"الخروج من هذه الشاشة والعودة إلى التطبيق؟",kExitYes:"نعم، اخرج",readyT:"🔔 الطعام جاهز",readyServed:"✓ تم التقديم",lnReady:"✓ جاهز",lnServed:"🍽️ تم التقديم",lnCooking:"🍳 في المطبخ",kPrint:"اطبع تذاكر المطبخ أيضًا (مع الشاشة)",wTables:"الطاولات",wHello:"النادل: {n}"},
+ckb:{tyC2:"پێڵاو و جلوبەرگ",tyR2:"چێشتخانە",close:"داخستن",del2:"سڕینەوە",tapAgain2:"دووبارە دابگرە",saveW:"پاشەکەوت",printW:"🖨️ چاپ",photo:"📷 وێنە",photoRm:"سڕینەوەی وێنە",noItems:"هیچ نییە",searchM:"بە ناو بگەڕێ…",all:"هەموو",
+cmNew:"+ مۆدێلی نوێ",cmTitle:"مۆدێل",cmName:"ناوی مۆدێل",cmBrand:"مارکە",cmCat:"پۆل",cmKind:"جۆر (پێڵاو، کراس، پانتۆڵ…)",cmPrice:"نرخی فرۆشتن (دانە)",cmCost:"تێچوون (دانە)",cmMin:"کەمترین نرخ بۆ مامەڵەکردن (ئارەزوومەندانە)",cmSizes:"قەبارە",cmColors:"ڕەنگ",cmAddColor:"ڕەنگێکی نوێ (ڕەش، سپی…)",cmColorHint:"ڕەنگێک بنووسە و + دابگرە. پاشان خشتەی قەبارەکان و بارکۆدەکان لە خوارەوە دەردەکەون.",cmAddSize:"قەبارەیەکی تر",cmGrid:"ژمارەی هەر قەبارە و ڕەنگێک لە کۆگا",cmSeries:"+ سیری",cmSeriesAsk:"چەند سیری؟ (هەر سیرییەک = یەک لە هەر قەبارەیەک)",cmNeed:"ناو، نرخ و یەک ڕەنگ پێویستن",cmSaved:"مۆدێل پاشەکەوت کرا",cmKeep:"ئەو قەبارە یان ڕەنگانەی کۆگایان تێدا ماوە نەسڕانەوە",cmDelAll:"سڕینەوەی مۆدێل",cmDelBlocked:"سەرەتا کۆگا بکە بە 0",psShoes:"پێڵاو 36–46",psKids:"پێڵاوی منداڵان 20–35",psCloth:"S – XXL",psPants:"پانتۆڵ 28–40",psNone:"بێ قەبارە",catMen:"پیاوان",catWomen:"ئافرەتان",catKids:"منداڵان",catAll:"هەموو",pcs:"{n} دانە",labelsB:"🏷️ لەیبڵ",editB:"گۆڕین",pickT:"قەبارە و ڕەنگ هەڵبژێرە",noneLeft:"نەماوە",minNote:"کەمترین نرخ: {m}",waitAsk:"{m} — {s} نەماوە. زیادی بکە بۆ لیستی چاوەڕوانی:",waitName:"ناوی کڕیار",waitPhone:"ژمارەی مۆبایل",waitAdd:"زیادکردن",waitList:"لیستی چاوەڕوانی",waitAvail:"✅ ئێستا هەیە",waitNo:"⏳ هێشتا نەهاتووە",waitMsg:"سڵاو {n}، {m} ({s}) ئێستا لە {shop} هەیە. بەخێربێیت 🌸",waitDone:"تەواو",waitSaved:"زیادکرا بۆ لیستی چاوەڕوانی",alWait:"چاوەڕێیە: {m} ({s}) — ئێستا هەیە",opriceAsk:"نرخی نوێ بۆ دانەیەک (کەمترین: {m})",tooLow:"ئەم نرخە لە کەمترین نرخ کەمترە ({m})",aPrice:"نرخ دابەزێنرا",retAsk:"{a} — پارە بگەڕێنرێتەوە یان پسوولەی گۆڕینەوە بدرێت؟",retCash:"💵 پارە",retVch:"🎫 پسوولە",vchTitle:"پسوولەی گۆڕینەوە",vchCode:"کۆد",vchUseL:"پسوولەی گۆڕینەوە:",vchPh:"کۆدی پسوولە",vchApply:"بەکاربهێنە",vchBad:"پسوولە نەدۆزرایەوە یان بەکارهاتووە",vchApplied:"پسوولە: −{a}",vchNote:"ئەم پسوولەیە بپارێزە و لە کڕینی داهاتوو کۆدەکەی بەکاربهێنە.",lbTitle:"چاپی لەیبڵ",lbRoll:"ڕۆڵی لەیبڵ 40×30 مم",lbA4:"کاغەزی A4 (3×8)",lbHint:"ژمارەی لەیبڵ بۆ هەر قەبارە و ڕەنگێک",oldT:"کاڵای وەستاو (60 ڕۆژ بێ فرۆشتن)",oldNone:"هیچ کاڵایەکی وەستاو نییە 👍",oldDays:"{n} ڕۆژ",oldNever:"هێشتا نەفرۆشراوە",bestSz:"پڕفرۆشترین قەبارەکان",bestCl:"پڕفرۆشترین ڕەنگەکان",seasT:"🏷️ داشکاندنی وەرز",seasPct:"ڕێژەی داشکاندن ٪",seasOn:"جێبەجێکردن",seasOff:"گەڕاندنەوەی نرخە کۆنەکان",seasDone:"{n} کاڵا گۆڕدران",seasNow:"داشکاندن لەسەر {n} کاڵایە",otherItems:"کاڵاکانی تر",cmSearch:"بە مۆدێل یان مارکە بگەڕێ…",sizeW:"قەبارە",colorW:"ڕەنگ",bcT:"📦 بارکۆدی سەر قوتووی پێڵاوەکان",bcHint:"ئەگەر قوتووەکە بارکۆدی هەبێت لێرە سکانی بکە (کامێرا یان سکانەر). ئەگەر بەتاڵ بێت ئەپ خۆی بارکۆدێک دروست دەکات.",bcDup:"ئەم بارکۆدە هی کاڵایەکی ترە: {n}",linkT:"بارکۆدی نەناسراو",linkHint:"هی کام مۆدێل و قەبارەیە؟ یەکجار هەڵیبژێرە، پاشان خۆکار دەناسرێتەوە.",linkDone:"بارکۆد بەسترایەوە",
+rNew:"+ خواردنی نوێ",rItem:"خواردن",rName:"ناو",rCat:"پۆل (ساندویچ، پیتزا، خواردنەوە…)",rPrice:"نرخ",rCost:"تێچوون (ئارەزوومەندانە)",rSizes:"قەبارە (ئارەزوومەندانە)",rSizeN:"بچووک، گەورە…",rExtras:"زیادکراو (ئارەزوومەندانە)",rExtraN:"پەنیری زیادە…",rAddRow:"+ زیادکردن",rTrack:"کۆگا بژمێرە (بۆ خواردنەوە و شتی ئامادە)",rPieces:"کۆگا",rOffL:"ئەمڕۆ نەماوە",rOffB:"نەماوە",rOnB:"هەیە",tIn:"ناوخۆ",tOut:"سەفەری",tDel:"گەیاندن",rTablesB:"🍽️ مێز",rTableN:"مێزی {n}",rPickT:"مێزێک هەڵبژێرە",rMoveT:"بۆ کام مێز؟",rFree:"بەتاڵ",rBusy:"کڕیاری لەسەرە",rBillSt:"حیساب داواکراوە",rOpenB:"داواکارییە کراوەکان",rNoOpen:"هیچ داواکارییەکی کراوە نییە",rNewB:"+ داواکاری نوێ",rEmpty:"خواردنێک هەڵبژێرە",rSend:"📨 بنێرە بۆ چێشتخانە",rSent:"نێردرا بۆ چێشتخانە",rNothing:"هیچ شتێکی نوێ نییە بۆ چێشتخانە",rBill:"🧾 چاپی حیساب",rPay:"💵 حیساب",rMove:"↔ گواستنەوە",rCancel:"✕ هەڵوەشاندنەوە",rNote:"تێبینی (بێ پیاز، تیژ…)",rQty:"ژمارە",rAdd:"زیادکردن",rCustName:"ناوی کڕیار",rCustPhone:"مۆبایل",rCustAddr:"ناونیشان",rFee:"گەیاندن",rSvc:"خزمەتگوزاری",rSvcSet:"خزمەتگوزاری ٪ (تەنها بۆ ناوخۆ)",rTablesSet:"ژمارەی مێزەکان",rSub:"کۆ",rTot:"کۆی گشتی",rpCash:"💵 کاش",rpCard:"💳 کارت",rpCredit:"📒 قەرز",rpEqual:"بە یەکسانی دابەش بکە بەسەر",rpEach:"هەر کەسێک: {a}",rpItems:"تەنها ئەم شتانە ئێستا بدە:",rpPay:"پارە وەرگیرا",rpMethod:"چۆن دەدرێت؟",rWaste:"🗑️ بەفیڕۆچوو",rWasteAsk:"چەند دانە بەفیڕۆچوو؟",rWasteN:"بەفیڕۆچوو: {n} × {q}",rByType:"فرۆشتن بەپێی جۆری داواکاری",rByWaiter:"فرۆشتنی هەر کارمەندێک",rByHour:"کاتە قەرەباڵغەکان (ژمارەی داواکاری)",rMoved:"گوازرایەوە بۆ مێزی {n}",rMerged:"لەگەڵ داواکاری مێزی {n} تێکەڵ کرا",aCancel:"داواکاری هەڵوەشێنرایەوە",aWaste:"بەفیڕۆچوو",aRmLine:"دوای ناردن بۆ چێشتخانە سڕایەوە",rSettings:"ڕێکخستنەکانی چێشتخانە",rKitchen:"چێشتخانە",rPreBill:"حیساب (هێشتا نەدراوە)",rMenu:"مینیو",rNoMenu:"هێشتا هیچ خواردنێک نییە. لە کۆگا «+ خواردنی نوێ» دابگرە.",rTicketFor:"داواکاری #{n}",
+scrL:"ئەم ئامێرە بۆ چییە؟",scrAll:"کاشێر (هەموو شت)",scrKitchen:"🍳 شاشەی چێشتخانە",scrWaiter:"🧑‍🍳 گارسۆن",scrNote:"تەنها لەسەر ئەم ئامێرە دەگۆڕێت.",kTitle:"چێشتخانە",kNone:"هیچ داواکارییەک نییە 👌",kAllDone:"✓ هەموو ئامادەن",kMin:"{n} خولەک",kNew:"نوێ",kDone:"ئامادە بوون",kUndo:"گەڕاندنەوە",kExit:"دەرچوون",kExitQ:"لەم شاشەیە دەربچیت و بگەڕێیتەوە بۆ ئەپ؟",kExitYes:"بەڵێ، دەرچوون",readyT:"🔔 خواردن ئامادەیە",readyServed:"✓ برا",lnReady:"✓ ئامادەیە",lnServed:"🍽️ برا",lnCooking:"🍳 لە چێشتخانە",kPrint:"چاپی چێشتخانەش (لەگەڵ شاشە)",wTables:"مێز",wHello:"گارسۆن: {n}"}});
+/* also the Phase 1 strings that are only in Kurdish / English */
+setTimeout(()=>{try{applyLang()}catch(e){}},0);
+/* the "new" button in Stock names what it adds in each shop type */
+function newBtnLabel(){const nb=$('#newProduct');if(nb)nb.textContent=isR()?t('rNew'):isC()?t('cmNew'):t('addProduct')}
+{const _rs=renderStock;renderStock=function(){const r=_rs.apply(this,arguments);try{newBtnLabel()}catch(e){}return r}}
+{const _al=applyLang;applyLang=function(){const r=_al.apply(this,arguments);try{newBtnLabel()}catch(e){}return r}}
+
+/* ===== Staff roles (cashier / waiter / kitchen) + owner password to leave those screens ===== */
+addT({
+ku:{roleL:"کارێ ڤی کارمەندی",roleCashier:"کاشێر",roleWaiter:"🧑‍🍳 گارسۆن",roleKitchen:"🍳 شاشا مەتبەخێ",roleNote:"گارسۆن و مەتبەخ ب تنێ شاشا خۆ دبینن. بۆ دەرکەفتنێ وشا نهێنیا خودانی دڤێت.",exitPassL:"وشا نهێنیا خودانێ ئەکاونتی",exitWrong:"وشا نهێنی خەلەتە"},
+ckb:{roleL:"کاری ئەم کارمەندە",roleCashier:"کاشێر",roleWaiter:"🧑‍🍳 گارسۆن",roleKitchen:"🍳 شاشەی چێشتخانە",roleNote:"گارسۆن و چێشتخانە تەنها شاشەی خۆیان دەبینن. بۆ دەرچوون وشەی نهێنی خاوەن پێویستە.",exitPassL:"وشەی نهێنی خاوەنی هەژمار",exitWrong:"وشەی نهێنی هەڵەیە"},
+ar:{roleL:"عمل هذا الموظف",roleCashier:"كاشير",roleWaiter:"🧑‍🍳 نادل",roleKitchen:"🍳 شاشة المطبخ",roleNote:"النادل والمطبخ يرون شاشتهم فقط. للخروج يلزم كلمة سر صاحب الحساب.",exitPassL:"كلمة سر صاحب الحساب",exitWrong:"كلمة السر خاطئة"},
+en:{roleL:"This staff member's job",roleCashier:"Cashier",roleWaiter:"🧑‍🍳 Waiter",roleKitchen:"🍳 Kitchen screen",roleNote:"Waiters and the kitchen only see their own screen. Leaving it needs the owner's password.",exitPassL:"Account owner's password",exitWrong:"Wrong password"}});
+/* a signed-in waiter / kitchen member always gets their screen; the owner can still pick one per device */
+{const _sr=screenRole;screenRole=function(){if(!isR())return '';const m=member();if(m&&(m.role==='waiter'||m.role==='kitchen'))return m.role;return _sr.apply(this,arguments)}}
+{const _am=applyMember;applyMember=function(){const r=_am.apply(this,arguments);try{applyScreen()}catch(e){}return r}}
+/* leaving: the owner's password is needed */
+askExit=function(){
+  const o=sheet('exOverlay');o.style.zIndex='95';const b=o.querySelector('.sheet');
+  const need=!!settings.pinHash;
+  b.innerHTML=`<h2>${t('kExitQ')}</h2>${need?`<div class="field"><label for="exPass">${t('exitPassL')}</label><input type="password" id="exPass" autocomplete="current-password"></div><p class="err" id="exErr" style="margin:0"></p>`:''}
+   <div class="sheet-actions"><button type="button" class="btn ghost" id="exNo">${t('cancel')}</button><button type="button" class="btn blue" id="exYes">${t('kExitYes')}</button></div>`;
+  o.hidden=false;if(need)setTimeout(()=>$('#exPass').focus(),60);
+  const go=async()=>{
+    if(need){const h=await hashPin($('#exPass').value||'');if(h!==settings.pinHash){beep(false);$('#exErr').textContent=t('exitWrong');$('#exPass').value='';$('#exPass').focus();return}}
+    o.hidden=true;try{localStorage.removeItem(scrKey())}catch(e){}
+    if(member())setMember(null);else applyScreen();
+    toast(t('scrAll'),'ok')};
+  $('#exNo').onclick=()=>o.hidden=true;$('#exYes').onclick=go;
+  if(need)$('#exPass').onkeydown=e=>{if(e.key==='Enter')go()};
+};
+window.askExit=askExit;
+if($('#kdsExit'))$('#kdsExit').onclick=()=>askExit();
+if($('#wExit'))$('#wExit').onclick=()=>askExit();
+/* the device-role choice in Account is for the owner only */
+{const _ss=screenSettings;screenSettings=function(){const r=_ss.apply(this,arguments);const p=$('#scrPanel');if(p&&member())p.hidden=true;return r}}
+/* staff form: role */
+function ensureRoleField(){
+  if($('#memRoleF'))return;
+  const h=$('#memOverlay .subh');
+  h.insertAdjacentHTML('beforebegin',`<div class="field" id="memRoleF"><label for="memRole" id="memRoleL"></label><select id="memRole"><option value="cashier" id="mrC"></option><option value="waiter" id="mrW"></option><option value="kitchen" id="mrK"></option></select><small class="muted" id="memRoleN" style="display:block;margin-top:6px"></small></div>`);
+}
+{const _om=openMem;openMem=function(m){ensureRoleField();const r=_om.apply(this,arguments);
+  $('#memRoleF').hidden=!isR();$('#memRoleL').textContent=t('roleL');$('#mrC').textContent=t('roleCashier');$('#mrW').textContent=t('roleWaiter');$('#mrK').textContent=t('roleKitchen');$('#memRoleN').textContent=t('roleNote');
+  $('#memRole').value=(m&&m.role)||'cashier';return r}}
+{const _yes=$('#memYes').onclick;$('#memYes').onclick=async function(){
+  const role=isR()?$('#memRole').value:null,editId=memEdit&&memEdit.id,before=new Set((settings.team||[]).map(m=>m.id));
+  await _yes.apply(this,arguments);
+  if(!role)return;const m=editId?(settings.team||[]).find(x=>x.id===editId):(settings.team||[]).find(x=>!before.has(x.id));
+  if(m&&(m.role||'cashier')!==role){m.role=role;saveSettings();renderTeam();applyMember()}}}
+{const _rt=renderTeam;renderTeam=function(){const r=_rt.apply(this,arguments);if(!isR())return r;const list=settings.team||[];
+  $$('#teamList .card').forEach((c,i)=>{const m=list[i];if(!m||!m.role||m.role==='cashier')return;const pc=c.querySelector('.permchips');if(pc)pc.insertAdjacentHTML('afterbegin',`<span class="rolechip">${t(m.role==='waiter'?'roleWaiter':'roleKitchen')}</span>`)});return r}}
+Object.assign(window,{screenRole:()=>screenRole()});
 
 })();
 </script>
