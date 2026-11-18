@@ -4581,11 +4581,13 @@ restaurant:{
  ar:{brand:"محاسب المطعم",welcomeTitle:"أهلًا بك في محاسب المطعم",welcomeLead:"أدر الطاولات والطلبات والمطبخ وحساب مطعمك في مكان واحد.",f1t:"الطاولات والطلبات",f1d:"داخلي، سفري وتوصيل بنقرات قليلة.",f2t:"شاشة المطبخ",f2d:"الطلبات تصل المطبخ مباشرة، والنادل يعرف متى تجهز.",f3t:"الحساب والربح",f3d:"نقدًا، بطاقة، دين، ومبيعات كل موظف."},
  en:{brand:"Zhmeryar Restaurant",welcomeTitle:"Welcome to Zhmeryar Restaurant",welcomeLead:"Run tables, orders, the kitchen and the bill in one place.",f1t:"Tables & orders",f1d:"Dine-in, takeaway and delivery in a few taps.",f2t:"Kitchen screen",f2d:"Orders reach the kitchen at once, and waiters know when food is ready.",f3t:"Bill & profit",f3d:"Cash, card, credit and sales per staff member."}}};
 const TYPES=['market','clothes','restaurant'];
-let linkType='';
-try{const q=new URLSearchParams(location.search).get('type');if(q&&TYPES.includes(q)){linkType=q;localStorage.setItem('zh.linkType',q)}else linkType=localStorage.getItem('zh.linkType')||''}catch(e){}
+let linkType='',urlType='';
+try{const q=new URLSearchParams(location.search).get('type');if(q&&TYPES.includes(q)){linkType=urlType=q;localStorage.setItem('zh.linkType',q)}else linkType=localStorage.getItem('zh.linkType')||''}catch(e){}
 window.linkType=()=>linkType;
 /* which look to use: the shop's own type once known, else the link it came from */
-const brandType=()=>{const s=settings&&settings.shopType;return (s&&(settings.registered||myId))?s:(linkType||s||'market')};
+/* signed in: the shop's own type. Not signed in (welcome / login page): the link that was opened */
+const signedIn=()=>!!(db&&myId);
+const brandType=()=>{const s=settings&&settings.shopType;if(signedIn()&&s)return s;return urlType||linkType||'market'};
 let marketTitle=document.title;
 function applyBrand(){
   const ty=brandType(),d=BR[ty];
@@ -4609,13 +4611,13 @@ const defPal=ty=>({clothes:'rose',restaurant:'sunset'})[ty]||'purple';
 function brandLook(){
   const ty=brandType();
   $$('#onb1 .feat .ic').forEach((ic,i)=>{if(ic.dataset.orig==null)ic.dataset.orig=ic.innerHTML;const e=FEAT_EMO[ty];ic.innerHTML=e?`<span class="emo">${e[i]||''}</span>`:ic.dataset.orig});
-  if(!settings.palette)document.documentElement.setAttribute('data-pal',defPal(ty));
+  if(!signedIn()||!settings.palette)document.documentElement.setAttribute('data-pal',defPal(ty));
   /* the shop type comes from the link: no choice on the sign-up form */
   const a=$('#aType');if(a){a.value=linkType||'market';const f=a.closest('.field');if(f)f.hidden=true}
   const tp=$('#typePanel');if(tp&&!isAdmin)tp.hidden=true;
 }
 {const _ab=applyBrand;applyBrand=function(){const r=_ab.apply(this,arguments);try{brandLook()}catch(e){}return r}}
-{const _at=applyTheme;applyTheme=function(){const r=_at.apply(this,arguments);try{if(!settings.palette)document.documentElement.setAttribute('data-pal',defPal(brandType()))}catch(e){}return r}}
+{const _at=applyTheme;applyTheme=function(){const r=_at.apply(this,arguments);try{if(!signedIn()||!settings.palette)document.documentElement.setAttribute('data-pal',defPal(brandType()));applyBrand();setTitle()}catch(e){}return r}}
 {const _rs=renderSettings;renderSettings=function(){const r=_rs.apply(this,arguments);try{const tp=$('#typePanel');if(tp&&!isAdmin)tp.hidden=true}catch(e){}return r}}
 {const _ra2=renderAuth;renderAuth=function(){const r=_ra2.apply(this,arguments);try{brandLook()}catch(e){}return r}}
 try{brandLook();applyTheme()}catch(e){}
