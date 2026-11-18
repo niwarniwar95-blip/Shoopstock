@@ -4559,6 +4559,39 @@ async function loadBackups(shop){
 }
 window.loadBackups=loadBackups;
 
+/* ===== One app, three links: ?type=market | clothes | restaurant ===== */
+const BR={
+clothes:{
+ ku:{brand:"ژمێریارا پێلاڤ و جلان",welcomeTitle:"ب خێر بێی بۆ ژمێریارا پێلاڤ و جلان",welcomeLead:"قەبارە، ڕەنگ، ستۆک و قازانجا دوکانا خۆ ب ساناهی بڕێڤە ببە.",f1t:"قەبارە و ڕەنگ",f1d:"ستۆکا هەر قەبارە و ڕەنگەکی ب ئێک نێرین.",f2t:"سکان و ستیکەر",f2d:"بارکۆدێ کارتۆنێ سکان بکە، یان ستیکەران پرنت بکە.",f3t:"قازانج و داشکاندن",f3d:"قازانجا ڕۆژانە، داشکاندنا وەرزی و کالایێن ڕاوەستیای."},
+ ckb:{brand:"ژمێریاری پێڵاو و جلوبەرگ",welcomeTitle:"بەخێربێیت بۆ ژمێریاری پێڵاو و جلوبەرگ",welcomeLead:"قەبارە، ڕەنگ، کۆگا و قازانجی دوکانەکەت بە ئاسانی بەڕێوە ببە.",f1t:"قەبارە و ڕەنگ",f1d:"کۆگای هەر قەبارە و ڕەنگێک بە یەک سەیرکردن.",f2t:"سکان و لەیبڵ",f2d:"بارکۆدی قوتووەکە سکان بکە، یان لەیبڵ چاپ بکە.",f3t:"قازانج و داشکاندن",f3d:"قازانجی ڕۆژانە، داشکاندنی وەرز و کاڵای وەستاو."},
+ ar:{brand:"محاسب الأحذية والملابس",welcomeTitle:"أهلًا بك في محاسب الأحذية والملابس",welcomeLead:"أدر المقاسات والألوان والمخزون وأرباح محلك بسهولة.",f1t:"المقاسات والألوان",f1d:"مخزون كل مقاس ولون بنظرة واحدة.",f2t:"المسح والملصقات",f2d:"امسح باركود العلبة أو اطبع ملصقات.",f3t:"الربح والتخفيضات",f3d:"ربح اليوم، تخفيضات الموسم، والبضاعة الراكدة."},
+ en:{brand:"Zhmeryar Shoes & Clothes",welcomeTitle:"Welcome to Zhmeryar Shoes & Clothes",welcomeLead:"Run sizes, colours, stock and profit of your shop with ease.",f1t:"Sizes & colours",f1d:"Stock of every size and colour at a glance.",f2t:"Scan & labels",f2d:"Scan the box barcode or print labels.",f3t:"Profit & discounts",f3d:"Daily profit, season discounts and slow stock."}},
+restaurant:{
+ ku:{brand:"ژمێریارا چێشتخانێ",welcomeTitle:"ب خێر بێی بۆ ژمێریارا چێشتخانێ",welcomeLead:"مێز، داخواز، مەتبەخ و حسابا چێشتخانا خۆ ل ئێک جهـ بڕێڤە ببە.",f1t:"مێز و داخواز",f1d:"ناڤخۆ، سەفەری و دلیڤەری ب چەند کلیکان.",f2t:"شاشا مەتبەخێ",f2d:"داخواز ڕاستەوخۆ دگەهنە مەتبەخێ، و گارسۆن دزانیت کەنگی حازرە.",f3t:"حساب و قازانج",f3d:"کاش، کارت، قەرز، و فرۆتنا هەر کارمەندەکی."},
+ ckb:{brand:"ژمێریاری چێشتخانە",welcomeTitle:"بەخێربێیت بۆ ژمێریاری چێشتخانە",welcomeLead:"مێز، داواکاری، چێشتخانە و حیسابی چێشتخانەکەت لە یەک شوێن بەڕێوە ببە.",f1t:"مێز و داواکاری",f1d:"ناوخۆ، سەفەری و گەیاندن بە چەند کلیکێک.",f2t:"شاشەی چێشتخانە",f2d:"داواکاری ڕاستەوخۆ دەگاتە چێشتخانە و گارسۆن دەزانێت کەی ئامادەیە.",f3t:"حیساب و قازانج",f3d:"کاش، کارت، قەرز و فرۆشتنی هەر کارمەندێک."},
+ ar:{brand:"محاسب المطعم",welcomeTitle:"أهلًا بك في محاسب المطعم",welcomeLead:"أدر الطاولات والطلبات والمطبخ وحساب مطعمك في مكان واحد.",f1t:"الطاولات والطلبات",f1d:"داخلي، سفري وتوصيل بنقرات قليلة.",f2t:"شاشة المطبخ",f2d:"الطلبات تصل المطبخ مباشرة، والنادل يعرف متى تجهز.",f3t:"الحساب والربح",f3d:"نقدًا، بطاقة، دين، ومبيعات كل موظف."},
+ en:{brand:"Zhmeryar Restaurant",welcomeTitle:"Welcome to Zhmeryar Restaurant",welcomeLead:"Run tables, orders, the kitchen and the bill in one place.",f1t:"Tables & orders",f1d:"Dine-in, takeaway and delivery in a few taps.",f2t:"Kitchen screen",f2d:"Orders reach the kitchen at once, and waiters know when food is ready.",f3t:"Bill & profit",f3d:"Cash, card, credit and sales per staff member."}}};
+const TYPES=['market','clothes','restaurant'];
+let linkType='';
+try{const q=new URLSearchParams(location.search).get('type');if(q&&TYPES.includes(q)){linkType=q;localStorage.setItem('zh.linkType',q)}else linkType=localStorage.getItem('zh.linkType')||''}catch(e){}
+window.linkType=()=>linkType;
+/* which look to use: the shop's own type once known, else the link it came from */
+const brandType=()=>{const s=settings&&settings.shopType;return (s&&(settings.registered||myId))?s:(linkType||s||'market')};
+let marketTitle=document.title;
+function applyBrand(){
+  const ty=brandType(),d=BR[ty];
+  ['ku','ckb','ar','en'].forEach(l=>{if(!T[l])return;T[l].__base=T[l].__base||{};const base=T[l].__base;
+    ['welcomeTitle','welcomeLead','f1t','f1d','f2t','f2d','f3t','f3d'].forEach(k=>{if(!(k in base))base[k]=T[l][k];T[l][k]=d&&d[l]&&d[l][k]||base[k]})});
+  document.body.dataset.brand=ty;
+  const a=$('#aType');if(a&&linkType&&!a.dataset.touched)a.value=linkType;
+}
+function setTitle(){const d=BR[brandType()];if(d)document.title=(d[lang]||d.ku).brand}
+{const _al=applyLang;applyLang=function(){try{applyBrand()}catch(e){}const r=_al.apply(this,arguments);try{setTitle()}catch(e){}return r}}
+{const _ra=renderAuth;renderAuth=function(){const r=_ra.apply(this,arguments);try{const a=$('#aType');if(a&&linkType&&!a.dataset.touched)a.value=linkType}catch(e){}return r}}
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='aType')e.target.dataset.touched='1'});
+{const _am=applyMode;applyMode=function(){const r=_am.apply(this,arguments);try{applyBrand()}catch(e){}return r}}
+try{applyLang()}catch(e){}
+
 })();
 </script>
 </body>
