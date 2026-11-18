@@ -888,6 +888,10 @@ body[data-brand=clothes] .logo .mk-c,body[data-brand=restaurant] .logo .mk-r{dis
 body[data-brand=restaurant] nav::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%203v7M4.5%203v4.5a2.5%202.5%200%200%200%205%200V3M7%2010v11%22%2F%3E%3Cpath%20d%3D%22M18%203c-2%201.2-3.2%203.6-3.2%206.5V13H18v8%22%2F%3E%3C%2Fsvg%3E")!important;background-size:56%!important}
 body[data-brand=clothes] nav::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%207.5V6.6A2.1%202.1%200%201%200%209.9%204.5%22%2F%3E%3Cpath%20d%3D%22M12%207.5%202.9%2014.6A1.4%201.4%200%200%200%203.8%2017h16.4a1.4%201.4%200%200%200%20.9-2.4L12%207.5Z%22%2F%3E%3C%2Fsvg%3E")!important;background-size:56%!important}
 .feat .ic .emo{font-size:21px;line-height:1}
+/* stock card size grid: fit the card instead of being cut */
+.cmtab.mini{width:100%;border-spacing:3px;font-size:12px}
+.cmtab.mini td{min-width:0;padding:5px 1px}
+.cmtab.mini th{padding:1px 2px;font-size:11.5px}
 
 </style>
 </head>
@@ -1504,7 +1508,7 @@ const DEMO=/[?&]demo=1(&|$)/.test(location.search);if(DEMO)ACCT='demo';
 function KK(k){return ACCT&&/^shop\.(products|sales\.|settings|customers|expenses|purchases|closings|activity|images|waits|vouchers|tickets)/.test(k)?'shop.'+ACCT+'.'+k.slice(5):k}
 function DP(p){return ACCT?p.replace(/\/(products|sales-|settings|customers|expenses|purchases|closings|activity|images|waits|vouchers|tickets)/,'/'+ACCT+'-$1'):p}
 const lsGet=(k,f)=>{try{const v=localStorage.getItem(KK(k));return v?JSON.parse(v):f}catch(e){return f}};
-const lsSet=(k,v)=>{try{localStorage.setItem(KK(k),JSON.stringify(v));if(/^shop\.(products|sales\.|settings|customers|expenses|purchases|closings|activity|images|waits|vouchers|tickets)/.test(k))localStorage.setItem('ts:'+KK(k),String(Date.now()))}catch(e){}};
+const lsSet=(k,v)=>{try{localStorage.setItem(KK(k),JSON.stringify(v));if(/^shop\.(products|sales\.|settings|customers|expenses|purchases|closings|activity|images|waits|vouchers|tickets)/.test(k))localStorage.setItem('ts:'+KK(k),String(Date.now()))}catch(e){try{window.lsFull&&window.lsFull(k,v,e)}catch(_){}}};
 const lsSetSynced=(k,v,u)=>{try{localStorage.setItem(KK(k),JSON.stringify(v));localStorage.setItem('ts:'+KK(k),String(u||0))}catch(e){}};
 const localTs=k=>{try{return +localStorage.getItem('ts:'+KK(k))||0}catch(e){return 0}};
 
@@ -1651,6 +1655,16 @@ async function syncDoc(name){
   const key=rkey(name),isSet=name==='settings',spec=isSet?null:docSpecs()[name];
   if(!isSet&&!spec)return;
   let prevRu;
+  try{const b0=blGet(key);if(b0&&b0.u){
+    const {data:h,error:he}=await SB.from('shop_docs').select('u:data->>u').eq('shop_id',myId).eq('key',key).maybeSingle();
+    const hu=h?+(h.u!=null?h.u:(h.data&&h.data.u)):NaN;
+    if(!he&&hu===b0.u){
+      const snap=isSet?cleanSettings(settings):snapOf(spec,spec.get());
+      if(isSet?stable(snap)===stable(b0.m):sameSnap(snap,b0.m))return;
+      const doc=isSet?{...snap}:{[spec.f]:spec.get()};const u=Math.max(Date.now(),hu+1);doc.u=u;
+      const frozen=isSet?JSON.parse(JSON.stringify(snap)):snap;
+      if(await casWrite(key,doc,true,hu)){blSet(key,{u,m:frozen});return}
+    }}}catch(e){}
   for(let attempt=0;attempt<5;attempt++){
     const {data:row,error}=await SB.from('shop_docs').select('data').eq('shop_id',myId).eq('key',key).maybeSingle();
     if(error)throw error;
@@ -2094,13 +2108,13 @@ function renderQuick(){
 }
 function renderStock(){
   const q=$('#stockSearch').value.trim().toLowerCase();
-  const list=products.filter(p=>match(p,q)).sort(byName);
+  const all=products.filter(p=>match(p,q)).sort(byName),lim=window.__stockN||150,list=all.length>lim+30?all.slice(0,lim):all;
   $('#stockList').innerHTML=list.length?list.map(p=>`<div class="card${isLow(p)?' low':''}">
     <div class="card-top"><div><h3>${esc(p.name)}</h3>${p.barcode?`<div class="code"><bdi>${esc(p.barcode)}</bdi></div>`:''}</div>
     <div style="text-align:end"><bdi style="font-weight:700">${money(p.price)}</bdi>${isLow(p)?`<div class="badge">${t('low')}</div>`:''}</div></div>
     <span class="qty">${esc(stockText(p))}</span>${expTag(p)}
     <div class="card-actions">${p.byWeight?'':`<button class="btn ghost" data-restock="${p.id}">+1 ${t('cartonUnit')}</button>`}<button class="btn ghost" data-buy="${p.id}">${t('buy')}</button><button class="btn ghost" data-edit="${p.id}">${t('edit')}</button></div>
-  </div>`).join(''):`<div class="empty">${t('emptyStock')}</div>`;
+  </div>`).join('')+(all.length>list.length?`<button type="button" class="btn ghost" id="stockMore" style="grid-column:1/-1">${t('showMore')} (${all.length-list.length})</button>`:''):`<div class="empty">${t('emptyStock')}</div>`;
 }
 function renderAcc(){
   ensureMonth();
@@ -2511,7 +2525,8 @@ document.addEventListener('keydown',e=>{
   if([...$$('.overlay,.lock,.onb')].some(o=>!o.hidden))return;
   const now=Date.now();if(now-hidLast>80)hidBuf='';hidLast=now;
   if(e.key==='Enter'){if(hidBuf.length>=6){e.preventDefault();sellByCode(hidBuf)}hidBuf='';return}
-  if(e.key.length===1&&/[0-9A-Za-z\-]/.test(e.key))hidBuf+=e.key;
+  let hk=e.key;if(hk.length===1&&!/[0-9A-Za-z\-]/.test(hk)){const c=e.code||'';if(/^(Digit|Numpad)[0-9]$/.test(c))hk=c.slice(-1);else if(/^Key[A-Z]$/.test(c))hk=e.shiftKey?c[3]:c[3].toLowerCase();else if(c==='Minus'||c==='NumpadSubtract')hk='-'}
+  if(hk.length===1&&/[0-9A-Za-z\-]/.test(hk))hidBuf+=hk;
 });
 $('#fCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveDraft();$('#fName').focus()}});
 $('#stockSearch').addEventListener('input',renderStock);
@@ -4586,7 +4601,7 @@ try{const q=new URLSearchParams(location.search).get('type');if(q&&TYPES.include
 window.linkType=()=>linkType;
 /* which look to use: the shop's own type once known, else the link it came from */
 /* signed in: the shop's own type. Not signed in (welcome / login page): the link that was opened */
-const signedIn=()=>!!(db&&myId);
+const signedIn=()=>DEMO||!!(db&&myId);
 const brandType=()=>{const s=settings&&settings.shopType;if(signedIn()&&s)return s;return urlType||linkType||'market'};
 let marketTitle=document.title;
 function applyBrand(){
@@ -4622,6 +4637,133 @@ function brandLook(){
 {const _ra2=renderAuth;renderAuth=function(){const r=_ra2.apply(this,arguments);try{brandLook()}catch(e){}return r}}
 try{brandLook();applyTheme()}catch(e){}
 try{applyLang()}catch(e){}
+
+/* ===== Demo for each shop type (market / clothes / restaurant) ===== */
+addT({
+ku:{demoShopC:"دوکانا پێلاڤ و جلکان یا نموونە",demoShopR:"چێشتخانا نموونە"},
+ckb:{demoShopC:"دوکانی پێڵاو و جلی نموونە",demoShopR:"چێشتخانەی نموونە"},
+ar:{demoShopC:"محل أحذية وملابس تجريبي",demoShopR:"مطعم تجريبي"},
+en:{demoShopC:"Demo shoe & clothes shop",demoShopR:"Demo restaurant"}
+});
+(function(){
+const TY=['market','clothes','restaurant'];
+const qType=()=>{try{const q=new URLSearchParams(location.search).get('type');if(TY.includes(q))return q}catch(e){}try{const l=localStorage.getItem('zh.linkType');if(TY.includes(l))return l}catch(e){}return 'market'};
+/* the demo buttons keep the link's shop type */
+const go=()=>{const ty=qType();location.href=location.pathname+'?demo=1'+(ty!=='market'?'&type='+ty:'')};
+['#demoOpen','#demoBtnLock','#demoBtnOnb'].forEach(s=>{const b=$(s);if(b)b.onclick=go});
+if(!DEMO)return;
+const ty=qType();
+if(settings.demoType&&settings.demoType!==ty){
+  /* another type was tried in this browser: start the demo again from zero */
+  try{Object.keys(localStorage).forEach(k=>{if(k.includes('shop.demo.')||/\.demo$/.test(k))localStorage.removeItem(k)})}catch(e){}
+  location.reload();return;
+}
+if(settings.demoType===ty)return;
+if(ty==='market'){
+  /* the market demo is seeded in Kurdish: give Arabic and English users product names they can read */
+  const NM={ar:['Pepsi 330ml','مياه معدنية 500ml','رز تايلندي 5kg','سكر 1kg','شاي أحمد 500g','زيت دوار الشمس 1.8L','حليب نيدو 900g','جبنة كيري','شيبس','بسكويت','بيض (30 حبة)','شامبو','صابون','معكرونة','عصير برتقال 1L','خبز'],
+    en:['Pepsi 330ml','Mineral water 500ml','Thai rice 5kg','Sugar 1kg','Ahmad tea 500g','Sunflower oil 1.8L','Nido milk 900g','Kiri cheese','Chips','Biscuits','Eggs (30)','Shampoo','Soap','Macaroni','Orange juice 1L','Bread']}[lang];
+  if(NM&&products.length===NM.length){const old={};products.forEach((p,i)=>{old[p.name]=NM[i];p.name=NM[i]});
+    sales.forEach(x=>{if(old[x.n])x.n=old[x.n]});activity.forEach(x=>{if(x.n&&old[x.n])x.n=old[x.n];if(x.x)Object.keys(old).forEach(k=>{x.x=x.x.split(k).join(old[k])})});
+    saveProducts();saveSales();lsSet('shop.activity',activity)}
+  Object.assign(settings,{demoType:'market',shopType:'market',palette:defPal('market')});saveSettings();
+  try{applyTheme();renderAll();renderSettings()}catch(e){}
+  return}
+
+const R=+settings.usdRate||150500,now=Date.now(),D=DAY;
+const img=(e,c1,c2)=>{try{const cv=document.createElement('canvas');cv.width=cv.height=220;const g=cv.getContext('2d');const gr=g.createLinearGradient(0,0,220,220);gr.addColorStop(0,c1);gr.addColorStop(1,c2);g.fillStyle=gr;g.fillRect(0,0,220,220);g.font='130px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(e,110,122);return cv.toDataURL('image/jpeg',.82)}catch(x){return ''}};
+let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
+products=[];images=[];tickets=[];
+const C={ku:['ڕەش','سپی','شین','سۆر','زەر'],ckb:['ڕەش','سپی','شین','سوور','زەرد'],ar:['أسود','أبيض','أزرق','أحمر','أصفر'],en:['Black','White','Blue','Red','Yellow']}[lang]||['ڕەش','سپی','شین','سۆر','زەر'];
+if(ty==='clothes'){
+  const M=[['Nike Air Max','Nike','men',[0,1],45000,'👟','#ffe1e8','#ff9bb5'],['Adidas Run','Adidas','men',[2,0],38000,'👟','#e1ecff','#9bbcff'],['Classic Heel','Zara','women',[3,0],32000,'👠','#ffe6f0','#f7a1c4'],['Kids Sneaker','Puma','kids',[4,1],22000,'👟','#fff4d6','#ffd36b'],['Cotton Shirt','LC Waikiki','men',[1,2],18000,'👕','#e6f7ff','#8fd3ff'],['Denim Jeans','Levis','women',[2],35000,'👖','#e3e9ff','#9aa8ff']];
+  const S={men:['40','41','42','43','44','45'],women:['36','37','38','39','40'],kids:['28','29','30','31','32']};
+  M.forEach((m,i)=>{const mg='dmg'+i;const sz=m[5]==='👕'?['S','M','L','XL']:m[5]==='👖'?['28','30','32','34']:S[m[2]];
+    m[3].forEach((cx,ci)=>sz.forEach((s,si)=>{const col=C[cx];products.push({id:mg+'-'+ci+'-'+si,mg,base:m[0],name:m[0]+' '+s+' '+col,size:s,color:col,so:si,co:ci,brand:m[1],cat:m[2],kind:'',price:m[4],cartonCost:Math.round(m[4]*.62),minPrice:Math.round(m[4]*.85),perCarton:1,byWeight:false,pieces:(si*3+ci*2+i)%7===0?0:1+(si+ci+i)%4,barcode:'29'+String(100000000+i*1000000+ci*1000+si).slice(-9)+'0',expiry:''})}));
+    const d=img(m[5],m[6],m[7]);if(d)images.push({id:mg,d})});
+}else{
+  const N={ku:[['بەرگرێ گۆشتی','ساندویچ'],['شاورمە','ساندویچ'],['پیتزا','پیتزا'],['سەلاتە','سەلاتە'],['پەتاتە','زێدە'],['کۆلا','ڤەخوارن'],['چایێ','ڤەخوارن'],['کەباب','گریل']],
+    ckb:[['بەرگری گۆشت','ساندویچ'],['شاوەرمە','ساندویچ'],['پیتزا','پیتزا'],['زەڵاتە','زەڵاتە'],['پەتاتە','زیادە'],['کۆلا','خواردنەوە'],['چا','خواردنەوە'],['کەباب','گریل']],
+    ar:[['برغر لحم','سندويش'],['شاورما','سندويش'],['بيتزا','بيتزا'],['سلطة','سلطات'],['بطاطا','مقبلات'],['كولا','مشروبات'],['شاي','مشروبات'],['كباب','مشويات']],
+    en:[['Beef burger','Sandwich'],['Shawarma','Sandwich'],['Pizza','Pizza'],['Salad','Salad'],['Fries','Sides'],['Cola','Drinks'],['Tea','Drinks'],['Kebab','Grill']]}[lang]||[];
+  const X={ku:['پەنیرێ زێدە','ناڤنجی','مەزن'],ckb:['پەنیری زیادە','مامناوەند','گەورە'],ar:['جبنة إضافية','وسط','كبير'],en:['Extra cheese','Medium','Large']}[lang]||['+','M','L'];
+  const R2=[[6000,'🍔','#fff0d9','#ffb35c',[],[{n:X[0],p:500}]],[4000,'🌯','#ffe9d1','#ff9f5a',[],[]],[9000,'🍕','#ffe7d6','#ff8a4c',[{n:X[1],p:9000},{n:X[2],p:13000}],[]],[3500,'🥗','#e7f8e4','#7fd47a',[],[]],[2000,'🍟','#fff6d6','#ffd24c',[],[]],[1000,'🥤','#ffe2e2','#ff8080',[],[]],[500,'☕','#f3e7dc','#c9a27e',[],[]],[8000,'🍢','#ffe6d1','#e8834a',[],[]]];
+  R2.forEach((r,i)=>{const id='dr'+i;products.push({id,menu:1,name:N[i][0],cat:N[i][1],price:r[0],cartonCost:Math.round(r[0]*.4),sizes:r[4],extras:r[5],perCarton:1,byWeight:false,pieces:0,barcode:''});const d=img(r[1],r[2],r[3]);if(d)images.push({id,d})});
+  settings.tables=12;settings.svc=0;settings.kPrint=0;
+}
+/* a week of sales so the dashboard has something to show */
+sales=[];let seq=0;const pop=ty==='clothes'?products.filter(p=>p.pieces>0):products;
+const start=new Date();start.setHours(0,0,0,0);
+for(let d=6;d>=0;d--){
+  const day0=start.getTime()-d*D;if(monthOf(day0)!==monthKey)continue;
+  const nOrd=d===0?10:6+Math.floor(rnd()*6);
+  const endT=d===0?Math.min(now-5*60000,day0+21*3600000):day0+21*3600000,begT=d===0?Math.max(day0+8*3600000,Math.min(endT-6*3600000,day0+10*3600000)):day0+10*3600000;
+  for(let k=0;k<nOrd;k++){seq++;const t0=begT+(endT-begT)*(k+rnd()*0.8)/nOrd;const n=ty==='clothes'?1+Math.floor(rnd()*2):1+Math.floor(rnd()*4);
+    for(let j=0;j<n;j++){const p=pop[Math.floor(rnd()*pop.length)];const q=ty==='clothes'?1:1+Math.floor(rnd()*2);
+      sales.push({id:uid(),o:seq,t:Math.round(t0+j*15000),p:p.id,n:p.name,q,s:p.price,c:Math.round(costPer(p)*10000)/10000})}}
+}
+sales.sort((a,b)=>a.t-b.t);
+const cas=t('demoCashier'),tdS=sales.filter(s=>dayOf(s.t)===dayOf(now));const s1=tdS[1]||sales[0],s2=tdS[3]||sales[1];
+activity=[s1&&{id:uid(),t:now-3*3600000,a:'del',by:cas,n:s1.n,q:1,v:s1.s,o:s1.o},s2&&{id:uid(),t:now-2*3600000,a:'disc',by:cas,v:2000,o:s2.o,x:'30%',al:true}].filter(Boolean);
+if(ty==='restaurant'){
+  /* one table already eating, and one order waiting in the kitchen */
+  const L=(p,q)=>({id:uid(),p:p.id,n:p.name,q,s:p.price,c:costPer(p),sz:'',x:[],note:'',sent:now-20*60000});
+  seq++;tickets.push({id:uid(),no:seq,ty:'in',tb:'3',cn:'',cp:'',ca:'',fee:'',lines:[L(products[0],2),L(products[4],2),L(products[5],2)],by:cas,t:now-25*60000,st:'open'});
+  seq++;const k={id:uid(),no:seq,ty:'in',tb:'7',cn:'',cp:'',ca:'',fee:'',lines:[L(products[2],1),L(products[3],1),L(products[6],2)],by:cas,t:now-6*60000,st:'open'};k.lines.forEach(l=>l.sent=now-5*60000);tickets.push(k);
+}
+const shop=ty==='clothes'?t('demoShopC'):t('demoShopR');
+Object.assign(settings,{shopName:shop,shopType:ty,demoType:ty,orderSeq:seq,curOrder:null,palette:defPal(ty)});
+try{if(typeof setCur==='function')setCur(null)}catch(e){}
+saveProducts();saveSales();lsSet('shop.activity',activity);
+try{saveImages()}catch(e){}try{saveTickets()}catch(e){}
+saveSettings();
+try{applyTheme();applyLang();renderAll();renderSettings()}catch(e){console.warn(e)}
+})();
+
+/* ===== Arabic / Kurdish keyboard digits ===== */
+/* With a Kurdish or Arabic keyboard, number keys type ١٢٣. Number fields drop them silently and
+   barcodes typed by a scanner are not recognised. Turn them into 0-9 wherever a number is expected. */
+const AD={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9','٫':'.'};
+const normDigits=s=>String(s==null?'':s).replace(/[٠-٩۰-۹٫]/g,c=>AD[c]);
+window.normDigits=normDigits;
+const numField=el=>el&&el.tagName==='INPUT'&&(el.type==='number'||/^(numeric|decimal|tel)$/.test(el.inputMode||el.getAttribute('inputmode')||''));
+document.addEventListener('keydown',e=>{
+  const d=AD[e.key];if(!d||e.ctrlKey||e.metaKey||e.altKey)return;
+  const el=e.target;if(!numField(el))return;
+  e.preventDefault();
+  try{if(!document.execCommand('insertText',false,d)){el.value=(el.value||'')+d;el.dispatchEvent(new Event('input',{bubbles:true}))}}catch(x){}
+},true);
+/* pasted or auto-filled text */
+document.addEventListener('input',e=>{const el=e.target;if(!numField(el)||el.type==='number')return;const v=el.value;if(!/[٠-٩۰-۹٫]/.test(v))return;
+  const p=el.selectionStart;el.value=normDigits(v);try{el.setSelectionRange(p,p)}catch(x){}},true);
+{const _s=sellByCode;sellByCode=function(code){return _s.call(this,normDigits(code).trim())}}
+
+/* ===== speed with many products ===== */
+/* the stock list is only drawn when it can be seen; a sale no longer redraws thousands of hidden rows */
+{let dirty=false;const _rs=renderStock;
+ renderStock=function(){if(typeof tab!=='undefined'&&tab!=='stock'&&products.length>300){dirty=true;return}dirty=false;return _rs.apply(this,arguments)};
+ $$('nav button').forEach(b=>b.addEventListener('click',()=>{if(tab==='stock'&&dirty){dirty=false;try{_rs()}catch(e){console.warn(e)}}}));}
+/* alerts are worked out once after a burst of scans, not after every single scan */
+{const _ra=refreshAlerts;let tm=null;
+ refreshAlerts=function(){if(products.length<=300)return _ra.apply(this,arguments);clearTimeout(tm);tm=setTimeout(()=>{tm=null;try{_ra()}catch(e){}},350)}}
+addT({ku:{showMore:"زێدەتر نیشان بدە"},ckb:{showMore:"زیاتر پیشان بدە"},ar:{showMore:"عرض المزيد"},en:{showMore:"Show more"}});
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='stockMore'){window.__stockN=(window.__stockN||150)+300;renderStock()}});
+$('#stockSearch').addEventListener('input',()=>{window.__stockN=150},true);
+
+/* ===== browser storage full ===== */
+addT({ku:{lsFullW:"⚠️ جهێ خەزنکرنێ ل ڤی ئامێری تژی بوو. ئینتەرنێتێ ڤەکری بهێلە دا داتا ل سەر ئینتەرنێتێ بمینن."},
+ ckb:{lsFullW:"⚠️ شوێنی هەڵگرتن لەم ئامێرە پڕ بوو. ئینتەرنێت کراوە بهێڵە با داتاکان لە ئینتەرنێت بمێننەوە."},
+ ar:{lsFullW:"⚠️ امتلأت مساحة التخزين في هذا الجهاز. أبقِ الإنترنت متصلاً لتبقى البيانات محفوظة على الإنترنت."},
+ en:{lsFullW:"⚠️ This device's storage is full. Keep the internet on so your data stays saved online."}});
+let lsWarnT=0;
+window.lsFull=(k,v,e)=>{
+  if(!e||!/quota|exceed/i.test(String(e.name||'')+String(e.message||'')))return;
+  /* old months are on the server: drop their copies on this device first */
+  const cur='.sales.'+monthKey;
+  Object.keys(localStorage).filter(x=>/\.sales\.\d{4}-\d{2}$/.test(x)&&!x.endsWith(cur)).forEach(x=>{localStorage.removeItem(x);localStorage.removeItem('ts:'+x)});
+  try{localStorage.setItem(KK(k),JSON.stringify(v));return}catch(e2){}
+  if(Date.now()-lsWarnT>3600000){lsWarnT=Date.now();try{toast(t('lsFullW'),'err')}catch(x){}}
+};
 
 })();
 </script>
