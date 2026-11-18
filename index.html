@@ -880,6 +880,15 @@ body.rticket-in .rbar{display:none!important}
 .bkpanel{margin-top:14px}
 [data-bkr].arm{background:var(--red,#d33);color:#fff;border-color:transparent}
 
+/* each shop type has its own look */
+body[data-brand=clothes] .logo,body[data-brand=restaurant] .logo{background:linear-gradient(135deg,var(--blue),color-mix(in srgb,var(--blue) 50%,#000))}
+.logo .mk-alt{display:none;width:56%;height:56%}
+body[data-brand=clothes] .logo svg.mark:not(.mk-alt),body[data-brand=restaurant] .logo svg.mark:not(.mk-alt){display:none}
+body[data-brand=clothes] .logo .mk-c,body[data-brand=restaurant] .logo .mk-r{display:block}
+body[data-brand=restaurant] nav::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%203v7M4.5%203v4.5a2.5%202.5%200%200%200%205%200V3M7%2010v11%22%2F%3E%3Cpath%20d%3D%22M18%203c-2%201.2-3.2%203.6-3.2%206.5V13H18v8%22%2F%3E%3C%2Fsvg%3E")!important;background-size:56%!important}
+body[data-brand=clothes] nav::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%207.5V6.6A2.1%202.1%200%201%200%209.9%204.5%22%2F%3E%3Cpath%20d%3D%22M12%207.5%202.9%2014.6A1.4%201.4%200%200%200%203.8%2017h16.4a1.4%201.4%200%200%200%20.9-2.4L12%207.5Z%22%2F%3E%3C%2Fsvg%3E")!important;background-size:56%!important}
+.feat .ic .emo{font-size:21px;line-height:1}
+
 </style>
 </head>
 <body>
@@ -4590,6 +4599,26 @@ function setTitle(){const d=BR[brandType()];if(d)document.title=(d[lang]||d.ku).
 {const _ra=renderAuth;renderAuth=function(){const r=_ra.apply(this,arguments);try{const a=$('#aType');if(a&&linkType&&!a.dataset.touched)a.value=linkType}catch(e){}return r}}
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='aType')e.target.dataset.touched='1'});
 {const _am=applyMode;applyMode=function(){const r=_am.apply(this,arguments);try{applyBrand()}catch(e){}return r}}
+
+/* ---------- each type looks like its own app ---------- */
+const MK_R='<svg class="mark mk-alt mk-r" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v7M4.5 3v4.5a2.5 2.5 0 0 0 5 0V3M7 10v11"/><path d="M18 3c-2 1.2-3.2 3.6-3.2 6.5V13H18v8"/></svg>';
+const MK_C='<svg class="mark mk-alt mk-c" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5V6.6A2.1 2.1 0 1 0 9.9 4.5"/><path d="M12 7.5 2.9 14.6A1.4 1.4 0 0 0 3.8 17h16.4a1.4 1.4 0 0 0 .9-2.4L12 7.5Z"/></svg>';
+$$('.logo').forEach(l=>{if(!l.querySelector('.mk-alt'))l.insertAdjacentHTML('beforeend',MK_R+MK_C)});
+const FEAT_EMO={restaurant:['🍽️','👨‍🍳','💵'],clothes:['👟','🏷️','📈']};
+const defPal=ty=>({clothes:'rose',restaurant:'sunset'})[ty]||'purple';
+function brandLook(){
+  const ty=brandType();
+  $$('#onb1 .feat .ic').forEach((ic,i)=>{if(ic.dataset.orig==null)ic.dataset.orig=ic.innerHTML;const e=FEAT_EMO[ty];ic.innerHTML=e?`<span class="emo">${e[i]||''}</span>`:ic.dataset.orig});
+  if(!settings.palette)document.documentElement.setAttribute('data-pal',defPal(ty));
+  /* the shop type comes from the link: no choice on the sign-up form */
+  const a=$('#aType');if(a){a.value=linkType||'market';const f=a.closest('.field');if(f)f.hidden=true}
+  const tp=$('#typePanel');if(tp&&!isAdmin)tp.hidden=true;
+}
+{const _ab=applyBrand;applyBrand=function(){const r=_ab.apply(this,arguments);try{brandLook()}catch(e){}return r}}
+{const _at=applyTheme;applyTheme=function(){const r=_at.apply(this,arguments);try{if(!settings.palette)document.documentElement.setAttribute('data-pal',defPal(brandType()))}catch(e){}return r}}
+{const _rs=renderSettings;renderSettings=function(){const r=_rs.apply(this,arguments);try{const tp=$('#typePanel');if(tp&&!isAdmin)tp.hidden=true}catch(e){}return r}}
+{const _ra2=renderAuth;renderAuth=function(){const r=_ra2.apply(this,arguments);try{brandLook()}catch(e){}return r}}
+try{brandLook();applyTheme()}catch(e){}
 try{applyLang()}catch(e){}
 
 })();
